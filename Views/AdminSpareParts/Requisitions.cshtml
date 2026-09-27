@@ -1,0 +1,155 @@
+@model List<CS66_WebApplication1.Models.SparePartRequisition>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "ประวัติการเบิกอะไหล่";
+    decimal totalValue = ViewBag.TotalValue ?? 0m;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB;
+        --rim-border: #EAEAEA;
+        --rim-muted: #7A7A7A;
+    }
+
+    body { background: #F9FAFB; font-family: 'Kanit', sans-serif; }
+
+    .page-header-rim {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        padding: 30px 35px; border-radius: 16px; margin-bottom: 25px;
+        border: 1px solid var(--rim-border);
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;
+    }
+
+    .header-icon {
+        width: 50px; height: 50px; background: var(--rim-orange); color: white;
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; box-shadow: 0 4px 15px rgba(255,151,96,0.3);
+    }
+
+    .panel-card {
+        background: #FFF; border: 1px solid var(--rim-border); border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.03); overflow: hidden;
+    }
+
+    .table thead th {
+        background: #FAFAFA; padding: 14px 20px; border-bottom: 2px solid var(--rim-border);
+        font-size: 0.8rem; font-weight: 600; color: #555; text-transform: uppercase;
+    }
+
+    .table tbody td {
+        padding: 14px 20px; vertical-align: middle;
+        border-bottom: 1px solid #F5F5F5; font-size: 0.9rem;
+    }
+
+    .emp-chip {
+        background: var(--rim-orange-light); color: #E58856;
+        padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+
+    .qty-badge {
+        font-family: 'Montserrat', sans-serif; font-weight: 700;
+        color: var(--rim-orange); font-size: 1rem;
+    }
+
+    .empty-row { text-align: center; padding: 50px 20px; color: var(--rim-muted); }
+
+    .btn-back {
+        border: 1px solid var(--rim-border); background: #FFF; color: var(--rim-muted);
+        border-radius: 30px; padding: 8px 20px; font-size: 0.85rem;
+        font-weight: 500; text-decoration: none; transition: 0.2s;
+    }
+
+        .btn-back:hover { background: var(--rim-orange); color: #fff; border-color: var(--rim-orange); }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <div class="page-header-rim">
+        <div class="d-flex align-items-center gap-3">
+            <div class="header-icon"><i class="bi bi-box-arrow-up"></i></div>
+            <div>
+                <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif;">ประวัติการ<span style="color:var(--rim-orange)">เบิกอะไหล่</span></h2>
+                <p class="text-muted mb-0" style="font-size:0.9rem;">ติดตามว่าอะไหล่ถูกเบิกไปใช้กับงานไหน โดยใคร</p>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="text-muted" style="font-size:0.8rem;">มูลค่าอะไหล่ที่เบิกไปทั้งหมด</div>
+            <div style="font-family:'Montserrat',sans-serif; font-weight:800; font-size:1.5rem; color:var(--rim-orange);">
+                ฿@totalValue.ToString("N2")
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <a asp-action="Index" class="btn-back"><i class="bi bi-arrow-left me-1"></i> กลับไปหน้าจัดการอะไหล่</a>
+    </div>
+
+    <div class="panel-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>วันที่เบิก</th>
+                        <th>อะไหล่</th>
+                        <th class="text-center">จำนวน</th>
+                        <th class="text-end">มูลค่า</th>
+                        <th>ผู้เบิก</th>
+                        <th>ใช้กับงาน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var r in Model)
+                        {
+                            decimal value = r.Qty * (r.SparePart?.Price ?? 0);
+                            <tr>
+                                <td>
+                                    <div>@r.RequestedAt.ToString("dd MMM yyyy")</div>
+                                    <small class="text-muted">@r.RequestedAt.ToString("HH:mm") น.</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@(r.SparePart?.Name ?? "-")</div>
+                                    @if (!string.IsNullOrEmpty(r.Note))
+                                    {
+                                        <small class="text-muted">@r.Note</small>
+                                    }
+                                </td>
+                                <td class="text-center"><span class="qty-badge">@r.Qty</span></td>
+                                <td class="text-end fw-bold">฿@value.ToString("N0")</td>
+                                <td><span class="emp-chip"><i class="bi bi-person-fill me-1"></i>@(r.Employee?.Customer_Name ?? $"รหัส {r.Employee_Id}")</span></td>
+                                <td class="text-muted small">
+                                    @if (r.Appointment != null)
+                                    {
+                                        <div>@(r.Appointment.Service?.Service_Name ?? "บริการทั่วไป")</div>
+                                        <small>@r.Appointment.Appointment_Date.ToString("dd/MM/yy HH:mm")</small>
+                                    }
+                                    else
+                                    {
+                                        <span>ไม่ระบุงาน</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="empty-row">
+                                <i class="bi bi-journal-x fs-1 d-block mb-2" style="color:#EAEAEA;"></i>
+                                <h6 class="fw-bold">ยังไม่มีประวัติการเบิกอะไหล่</h6>
+                                <p class="mb-0 small">เมื่อพนักงานเบิกอะไหล่ รายการจะแสดงที่นี่</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

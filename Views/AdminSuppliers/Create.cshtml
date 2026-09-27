@@ -1,0 +1,115 @@
+@model CS66_WebApplication1.Models.Supplier
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "เพิ่มซัพพลายเออร์";
+}
+
+<style>
+    :root {
+        --peach-primary: #FF9259;
+        --peach-light: #FFF2EC;
+        --border-color: #EAEAEA;
+        --text-dark: #2D2D2D;
+    }
+
+    .lux-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        padding: 40px;
+    }
+
+    .lux-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .lux-input {
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 0.95rem;
+        background-color: #FAFAFA;
+    }
+
+        .lux-input:focus {
+            outline: none;
+            background-color: #FFFFFF;
+            border-color: var(--peach-primary);
+            box-shadow: 0 0 0 4px rgba(255, 146, 89, 0.15);
+        }
+
+    .btn-lux-primary {
+        background: var(--peach-primary);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .btn-lux-outline {
+        background: #FFFFFF;
+        color: #8C8A89;
+        border: 1.5px solid var(--border-color);
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="page-header-lux shadow-sm mb-4" style="background: linear-gradient(135deg, #FFFFFF 0%, var(--peach-light) 100%); padding: 30px 40px; border-left: 6px solid var(--peach-primary); border-radius: 16px; border: 1px solid var(--border-color);">
+                <p class="text-muted small mb-0 text-uppercase fw-semibold" style="letter-spacing: 1.5px;">Procurement</p>
+                <h2 class="fw-bold mb-0">เพิ่ม<span style="color: var(--peach-primary)">ซัพพลายเออร์ใหม่</span></h2>
+            </div>
+
+            <div class="lux-card">
+                <form asp-action="Create" method="post">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="lux-label"><i class="bi bi-building text-primary"></i> ชื่อซัพพลายเออร์</label>
+                            <input asp-for="Name" class="form-control lux-input" placeholder="เช่น บริษัท ล้อไทย จำกัด" required />
+                            <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="lux-label">ประเภท</label>
+                            <select asp-for="SupplierType" class="form-select lux-input">
+                                <option value="Company">บริษัท</option>
+                                <option value="Individual">บุคคลธรรมดา</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="lux-label"><i class="bi bi-telephone text-primary"></i> เบอร์โทรศัพท์</label>
+                            <input asp-for="Phone" class="form-control lux-input" placeholder="0812345678" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="lux-label"><i class="bi bi-envelope text-primary"></i> อีเมล</label>
+                            <input asp-for="Email" class="form-control lux-input" type="email" placeholder="example@company.com" />
+                        </div>
+                        <div class="col-12">
+                            <label class="lux-label"><i class="bi bi-geo-alt text-primary"></i> ที่อยู่</label>
+                            <textarea asp-for="Address" class="form-control lux-input" rows="3" placeholder="เช่น 123/45 ถ.พระราม 2 แขวงบางมด เขตจอมทอง กรุงเทพฯ 10150"></textarea>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a asp-action="Index" class="btn-lux-outline"><i class="bi bi-x-circle"></i> ยกเลิก</a>
+                        <button type="submit" class="btn-lux-primary"><i class="bi bi-check-circle-fill me-1"></i> บันทึกข้อมูล</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

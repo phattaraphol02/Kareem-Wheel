@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "การนัดหมายสำเร็จ";
+}
+
+<style>
+    .success-container {
+        max-width: 600px;
+        margin: 60px auto;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        border: 1px solid #EAEAEA;
+        padding: 50px 40px;
+        text-align: center;
+    }
+
+    .success-icon-wrapper {
+        width: 100px;
+        height: 100px;
+        background: #E8F5E9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px auto;
+    }
+
+    .success-icon {
+        font-size: 3.5rem;
+        color: #388E3C;
+    }
+
+    .booking-ref {
+        background: #F9FAFB;
+        border: 1px dashed #FF9760;
+        padding: 15px;
+        border-radius: 12px;
+        margin: 25px 0;
+    }
+
+    .btn-rim-orange {
+        background: #FF9760;
+        color: white;
+        border: none;
+    }
+
+        .btn-rim-orange:hover {
+            background: #f38349;
+            color: white;
+        }
+</style>
+
+<div class="container">
+    <div class="success-container">
+        <div class="success-icon-wrapper">
+            <i class="bi bi-check-lg success-icon"></i>
+        </div>
+        <h2 class="fw-bold mb-2">นัดหมายสำเร็จ!</h2>
+        <p class="text-muted">ระบบได้รับข้อมูลการนัดหมายของคุณเรียบร้อยแล้ว</p>
+
+        <div class="booking-ref">
+            <p class="mb-1 text-muted small">หมายเลขการจอง (Booking Ref.)</p>
+            <h4 class="fw-bold mb-3" style="color: #FF9760;">@(TempData.Peek("BookingRef") ?? "#APT-XXXXX")</h4>
+
+            <div class="row text-start mt-3 border-top pt-3">
+                <div class="col-6 border-end">
+                    <span class="text-muted small d-block mb-1">วันที่นัดหมาย</span>
+                    <strong class="text-dark">@(TempData.Peek("BookingDate") ?? "ไม่ระบุ")</strong>
+                </div>
+                <div class="col-6 ps-4">
+                    <span class="text-muted small d-block mb-1">เวลา</span>
+                    <strong class="text-dark">@(TempData.Peek("BookingTime") ?? "ไม่ระบุ") น.</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-controller="CustomerDashboard" asp-action="Index" class="btn btn-light px-4 py-2 rounded-pill fw-bold border">กลับหน้าหลัก</a>
+            <a asp-action="History" class="btn btn-rim-orange px-4 py-2 rounded-pill fw-bold">ดูประวัติการจอง</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,105 @@
+@model IEnumerable<CS66_WebApplication1.Models.Supplier>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var poCounts = ViewBag.PoCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <div class="brand-header shadow-sm" style="background: linear-gradient(135deg, #FFFFFF 0%, #FFF2EB 100%); padding: 35px 40px; border-left: 6px solid #FF9760; border-radius: 12px; margin-bottom: 30px; border: 1px solid #EAEAEA;">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <p class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 2px;">จัดซื้อสินค้าเข้าร้าน</p>
+                <h2 class="fw-bold mb-0">จัดการ<span style="color: #FF9760;">ซัพพลายเออร์</span></h2>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <a class="btn px-4 py-2 me-2" asp-controller="AdminProcurement" asp-action="Index" style="border: 1px solid #FF9760; color: #FF9760; background: transparent; border-radius: 30px;">
+                    <i class="bi bi-receipt me-1"></i> ใบสั่งซื้อ
+                </a>
+                <a class="btn px-4 py-2" asp-action="Create" style="background: #FF9760; color: white; border-radius: 30px;">
+                    <i class="bi bi-plus-lg me-1"></i> เพิ่มซัพพลายเออร์
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card lux-card shadow-sm" style="border: 1px solid #EAEAEA; border-radius: 12px; background: #FFFFFF; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background: #FAFAFA;">
+                    <tr>
+                        <th class="ps-4" style="font-size: 0.85rem; padding: 18px 20px;">ชื่อซัพพลายเออร์</th>
+                        <th style="font-size: 0.85rem; padding: 18px 20px;">ประเภท</th>
+                        <th style="font-size: 0.85rem; padding: 18px 20px;">เบอร์โทร</th>
+                        <th class="text-center" style="font-size: 0.85rem; padding: 18px 20px;">จำนวน PO</th>
+                        <th class="text-center" style="font-size: 0.85rem; padding: 18px 20px;">สถานะ</th>
+                        <th class="text-center pe-4" style="font-size: 0.85rem; padding: 18px 20px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var s in Model)
+                        {
+                            int poCount = poCounts.TryGetValue(s.SupplierId, out var c) ? c : 0;
+                            <tr class="@(!s.IsActive ? "opacity-50" : "")">
+                                <td class="ps-4 align-middle fw-semibold text-dark">@s.Name</td>
+                                <td class="align-middle text-muted">@s.SupplierType</td>
+                                <td class="align-middle text-muted">@(string.IsNullOrEmpty(s.Phone) ? "-" : s.Phone)</td>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-light text-dark border">@poCount ใบ</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    @if (s.IsActive)
+                                    {
+                                        <span class="badge bg-success">ใช้งานอยู่</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">ปิดใช้งาน</span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4 align-middle">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@s.SupplierId"
+                                           style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #EAEAEA; color: #4A90E2; text-decoration: none;">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <form asp-action="ToggleActive" asp-route-id="@s.SupplierId" method="post" style="display:inline;">
+                                            <button type="submit" style="width: 38px; height: 38px; border-radius: 8px; border: 1px solid #EAEAEA; color: #E58856; background: white; cursor: pointer;"
+                                                    title="@(s.IsActive ? "ปิดใช้งาน" : "เปิดใช้งาน")">
+                                                <i class="bi @(s.IsActive ? "bi-toggle2-on" : "bi-toggle2-off")"></i>
+                                            </button>
+                                        </form>
+                                        @if (poCount == 0)
+                                        {
+                                            <form asp-action="Delete" asp-route-id="@s.SupplierId" method="post" style="display:inline;">
+                                                <button type="submit" style="width: 38px; height: 38px; border-radius: 8px; border: 1px solid #EAEAEA; color: #E05638; background: white; cursor: pointer;"
+                                                        onclick="return confirm('ยืนยันการลบซัพพลายเออร์นี้?')">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-truck d-block mb-3" style="font-size:3rem; color:#EAEAEA;"></i>
+                                <h6 class="fw-bold mb-1">ยังไม่มีซัพพลายเออร์ในระบบ</h6>
+                                <p class="text-muted small mb-3">เพิ่มซัพพลายเออร์ก่อน จึงจะสร้างใบสั่งซื้อได้</p>
+                                <a asp-action="Create" class="btn btn-sm px-4" style="background:#FF9760; color:#fff; border-radius:30px;">
+                                    <i class="bi bi-plus-lg me-1"></i> เพิ่มซัพพลายเออร์รายแรก
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

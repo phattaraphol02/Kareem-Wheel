@@ -1,0 +1,370 @@
+﻿@model List<CartItem>
+@using CS66_WebApplication1.Models
+
+@{
+    ViewData["Title"] = "ยืนยันคำสั่งซื้อ - Kareem Wheel";
+    var total = Model?.Sum(x => x.Price * x.Qty) ?? 0;
+    var custInfo = ViewBag.CustomerInfo as Customer;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Montserrat:wght@300;600;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB;
+        --rim-bg: #F9FAFB;
+        --rim-card: #FFFFFF;
+        --rim-text: #2D2D2D;
+        --rim-border: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--rim-bg);
+        font-family: 'Kanit', sans-serif;
+        color: var(--rim-text);
+        font-size: 1.05rem; /* ขยายขนาดตัวอักษรพื้นฐานของหน้า */
+    }
+
+    /* Steps */
+    .checkout-steps {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 50px;
+        gap: 10px;
+    }
+
+    .step-item {
+        width: 60px;
+        height: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+    }
+
+        .step-item.active {
+            background: var(--rim-orange);
+        }
+
+    /* Main Card */
+    .main-card {
+        background: var(--rim-card);
+        border: 1px solid var(--rim-border);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--rim-border);
+        border: 1px solid var(--rim-border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .info-tile {
+        background: #fff;
+        padding: 25px;
+    }
+
+    .info-tile-full {
+        grid-column: span 2;
+    }
+
+    .tile-label {
+        font-size: 0.85rem; /* ขยายจากเดิม 0.65rem */
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #7A7A7A;
+        margin-bottom: 8px;
+    }
+
+    .tile-value {
+        font-weight: 500;
+        font-size: 1.15rem; /* ขยายจากเดิม 0.95rem */
+    }
+
+    /* Table */
+    .rim-table thead th {
+        background: var(--rim-bg);
+        border: none;
+        font-size: 0.95rem; /* ขยายจากเดิม 0.75rem */
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 15px;
+        color: var(--rim-text);
+    }
+
+    .rim-table tbody td {
+        border-bottom: 1px solid var(--rim-border);
+        padding: 20px 15px;
+        font-size: 1.1rem; /* ขยายขนาดตัวอักษรในตาราง */
+    }
+
+    /* Summary */
+    .summary-box {
+        background: var(--rim-card);
+        border: 1px solid var(--rim-border);
+        padding: 40px;
+        border-radius: 12px;
+    }
+
+    .summary-text {
+        font-size: 1.1rem;
+    }
+
+    .btn-checkout {
+        background: var(--rim-orange);
+        color: white;
+        border: none;
+        padding: 18px;
+        width: 100%;
+        font-size: 1.2rem; /* ขยายขนาดตัวอักษรปุ่ม */
+        font-weight: 600;
+        letter-spacing: 1px;
+        transition: 0.3s;
+        border-radius: 8px;
+    }
+
+        .btn-checkout:hover {
+            background: #f38349;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 151, 96, 0.3);
+        }
+
+    .text-rim {
+        color: var(--rim-orange) !important;
+    }
+
+    /* Delivery Method Toggle */
+    .delivery-toggle {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .delivery-option input[type="radio"] {
+        display: none;
+    }
+
+    .delivery-option label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 20px 15px;
+        border: 2px solid var(--rim-border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 1.05rem; /* ขยายขนาดตัวอักษรตัวเลือก */
+        font-weight: 500;
+        color: #7A7A7A;
+        background: #fff;
+    }
+
+        .delivery-option label i {
+            font-size: 1.8rem; /* ขยายไอคอน */
+        }
+
+    .delivery-option input[type="radio"]:checked + label {
+        border-color: var(--rim-orange);
+        color: var(--rim-orange);
+        background: var(--rim-orange-light);
+        font-weight: 600;
+    }
+
+    /* Appointment Date Block */
+    #appointmentBlock {
+        display: none;
+        background: var(--rim-orange-light);
+        border: 1px solid #FFD6BE;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+
+        #appointmentBlock.show {
+            display: block;
+        }
+
+        #appointmentBlock .tile-label {
+            margin-bottom: 12px;
+            font-size: 1rem;
+            color: var(--rim-text);
+            font-weight: 600;
+        }
+
+    #AppointmentDate {
+        border: 1.5px solid #FFD6BE;
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-family: 'Kanit', sans-serif;
+        font-size: 1.1rem; /* ขยายช่องเลือกวันที่ */
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+        background: #fff;
+        color: var(--rim-text);
+    }
+
+        #AppointmentDate:focus {
+            border-color: var(--rim-orange);
+        }
+</style>
+
+<div class="container py-5">
+    <div class="checkout-steps">
+        <div class="step-item active"></div>
+        <div class="step-item active"></div>
+        <div class="step-item active"></div>
+    </div>
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-2">ตรวจสอบคำสั่งซื้อ</h2>
+        <div style="width: 50px; height: 4px; background: var(--rim-orange); margin: 0 auto 20px; border-radius: 2px;"></div>
+    </div>
+
+    <div class="row g-5">
+        <!-- ฝั่งซ้าย: ข้อมูลจัดส่ง -->
+        <div class="col-lg-5">
+            <h4 class="fw-bold mb-4" style="font-size: 1.25rem;">
+                <i class="bi bi-geo-alt me-2 text-rim"></i> ที่อยู่สำหรับจัดส่ง
+            </h4>
+            <div class="info-grid">
+                @if (custInfo != null)
+                {
+                    <div class="info-tile"><div class="tile-label">ชื่อผู้รับ</div><div class="tile-value">@custInfo.Customer_Name</div></div>
+                    <div class="info-tile"><div class="tile-label">เบอร์โทรศัพท์</div><div class="tile-value">@custInfo.Phone</div></div>
+                    <div class="info-tile info-tile-full"><div class="tile-label">อีเมล</div><div class="tile-value">@custInfo.Customer_Email</div></div>
+                    <div class="info-tile info-tile-full">
+                        <div class="tile-label">ที่อยู่จัดส่ง</div>
+                        <div class="tile-value" style="line-height: 1.6;">
+                            @custInfo.Address, อ.@(custInfo.Amphur?.Amphur_Name), จ.@(custInfo.Province?.Province_Name) <br>
+                            <span class="text-rim fw-bold mt-1 d-inline-block">รหัสไปรษณีย์: @custInfo.PostalCode</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: รายการสินค้าและสรุปยอด -->
+        <div class="col-lg-7">
+            <div class="main-card p-4 p-md-5">
+                <h4 class="fw-bold mb-4" style="font-size: 1.25rem;">รายการสินค้าที่เลือก</h4>
+                <table class="table rim-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>รายละเอียดสินค้า</th>
+                            <th class="text-center">จำนวน</th>
+                            <th class="text-end">ราคารวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.Product_Name</div>
+                                    <div class="text-muted" style="font-size: 0.95rem;">รหัสสินค้า: #@item.Product_Id.ToString("D4")</div>
+                                </td>
+                                <td class="text-center fw-medium">@item.Qty</td>
+                                <td class="text-end fw-bold text-dark">฿@((item.Price * item.Qty).ToString("N0"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="summary-box mt-4">
+                <div class="d-flex justify-content-between mb-3 summary-text text-muted">
+                    <span>ยอดรวมสินค้า</span>
+                    <span class="fw-bold text-dark">฿@total.ToString("N0")</span>
+                </div>
+                <div class="d-flex justify-content-between mb-4 summary-text text-muted">
+                    <span>ค่าจัดส่ง</span>
+                    <span class="text-rim fw-bold">ฟรี</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-4 border-top mb-5">
+                    <h3 class="mb-0 fw-bold">ยอดชำระสุทธิ</h3>
+                    <h2 class="mb-0 text-rim fw-bold" style="font-family: 'Montserrat', sans-serif;">฿@total.ToString("N0")</h2>
+                </div>
+
+                @if (custInfo != null && Model != null && Model.Any())
+                {
+                    <form asp-controller="Checkout" asp-action="PlaceOrder" method="post" onsubmit="return validateAndConfirm();">
+
+                        <div class="fw-bold mb-3" style="font-size: 1.15rem;">
+                            <i class="bi bi-box-seam me-2 text-rim"></i> วิธีการรับสินค้า
+                        </div>
+                        <div class="delivery-toggle mb-4">
+                            <div class="delivery-option">
+                                <input type="radio" name="DeliveryMethod" id="optDelivery" value="Delivery" checked />
+                                <label for="optDelivery">
+                                    <i class="bi bi-truck"></i>
+                                    จัดส่งตามที่อยู่
+                                </label>
+                            </div>
+                            <div class="delivery-option">
+                                <input type="radio" name="DeliveryMethod" id="optPickup" value="Pickup" />
+                                <label for="optPickup">
+                                    <i class="bi bi-shop"></i>
+                                    รับสินค้าที่ร้าน
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="appointmentBlock">
+                            <div class="tile-label">
+                                <i class="bi bi-calendar-check me-1 text-rim"></i> เลือกวันและเวลารับสินค้า
+                            </div>
+                            <input type="datetime-local" id="AppointmentDate" name="AppointmentDate" />
+                            <div class="text-muted mt-2 fw-medium" style="font-size: 0.95rem;">
+                                * กรุณาเลือกวันและเวลาที่สะดวกเข้ามารับสินค้าที่สาขา
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-checkout mt-3">ยืนยันสั่งซื้อสินค้า</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ซ่อน/แสดง บล็อกเลือกเวลารับสินค้า ขึ้นอยู่กับตัวเลือกวิธีจัดส่ง
+    const radios = document.querySelectorAll('input[name="DeliveryMethod"]');
+    const appointmentBlock = document.getElementById('appointmentBlock');
+    const appointmentInput = document.getElementById('AppointmentDate');
+
+    // ตั้งค่าวันและเวลาขั้นต่ำให้เป็นเวลาปัจจุบัน
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    appointmentInput.min = now.toISOString().slice(0, 16);
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            if (this.value === 'Pickup') {
+                appointmentBlock.classList.add('show');
+                appointmentInput.required = true;
+            } else {
+                appointmentBlock.classList.remove('show');
+                appointmentInput.required = false;
+                appointmentInput.value = '';
+            }
+        });
+    });
+
+    // ฟังก์ชันตรวจสอบและยืนยันคำสั่งซื้อ
+    function validateAndConfirm() {
+        const method = document.querySelector('input[name="DeliveryMethod"]:checked').value;
+        if (method === 'Pickup' && !appointmentInput.value) {
+            alert('กรุณาเลือกวันและเวลาที่ต้องการมารับสินค้าที่ร้านครับ');
+            return false;
+        }
+        return confirm('คุณต้องการยืนยันคำสั่งซื้อนี้ใช่หรือไม่?');
+    }
+</script>

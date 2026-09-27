@@ -1,0 +1,89 @@
+@model CS66_WebApplication1.Models.Appointment
+@{
+    Layout = null;
+    string response = ViewBag.Response as string ?? "confirm";
+    bool isConfirm = response == "confirm";
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(isConfirm ? "ยืนยันคิวสำเร็จ" : "ยกเลิกคิวสำเร็จ") - Kareem Wheel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --rim-orange-deep: #F97A38;
+            --rim-bg-light: #FBFAF9;
+            --rim-border: #EFEAE6;
+            --text-main: #26221F;
+            --text-muted: #9A9086;
+            --ok: #2E7D32;
+            --no: #C23636;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--rim-bg-light);
+            font-family: 'Kanit', Tahoma, sans-serif;
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .card {
+            background: #FFFFFF;
+            border: 1px solid var(--rim-border);
+            border-radius: 20px;
+            box-shadow: 0 12px 34px rgba(38, 34, 31, 0.08);
+            padding: 36px 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--rim-orange-deep);
+            margin-bottom: 6px;
+        }
+
+        .icon-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 2rem;
+            color: #fff;
+            background: @(isConfirm ? "var(--ok)" : "var(--no)");
+        }
+
+        h3 { font-weight: 700; margin-bottom: 8px; }
+        p { color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand">KAREEM WHEEL</div>
+        <div class="icon-circle">
+            <i class="bi @(isConfirm ? "bi-check-lg" : "bi-x-lg")"></i>
+        </div>
+        <h3>@(isConfirm ? "ยืนยันคิวเรียบร้อยแล้ว" : "ยกเลิกคิวเรียบร้อยแล้ว")</h3>
+        <p>
+            @(isConfirm
+                ? "ขอบคุณที่ยืนยันครับ ทางร้านจะรอต้อนรับท่านตามวันเวลานัดหมาย"
+                : "คิวของท่านถูกเปิดให้ลูกค้าท่านอื่นจองแทนแล้ว หากต้องการใช้บริการใหม่ สามารถจองคิวได้อีกครั้งผ่านเว็บไซต์")
+        </p>
+    </div>
+</body>
+</html>

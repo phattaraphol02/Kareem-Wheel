@@ -1,0 +1,294 @@
+﻿@model CS66_WebApplication1.Models.RegisterVm
+@{
+    ViewData["Title"] = "Join Membership - Premium Rims Store";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --orange: #FF9259;
+        --orange-hover: #FF7B39;
+        --orange-light: #FFF2EC;
+        --bg-white: #FFFFFF;
+        --bg-light: #F9FAFB;
+        --text-dark: #2F2E2E;
+        --text-muted: #8C8A89;
+        --border: #EAEAEA;
+        --border-strong: #D1D5DB;
+        --success: #43C97A;
+    }
+
+    body {
+        background: var(--bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--text-dark);
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .reg-wrapper {
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    .main-form-card {
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--bg-white);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+
+    .form-header-box {
+        background: var(--bg-white);
+        padding: 45px 50px 25px 50px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .title-large {
+        font-family: 'Montserrat', sans-serif;
+        color: var(--text-dark);
+        font-weight: 900;
+        font-size: 2.2rem;
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+    }
+
+        .title-large span {
+            color: var(--orange);
+        }
+
+    .section-divider {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--orange);
+        display: flex;
+        align-items: center;
+        margin: 35px 0 20px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+        .section-divider::after {
+            content: "";
+            flex: 1;
+            height: 1.5px;
+            background: linear-gradient(to right, var(--orange-light), transparent);
+            margin-left: 15px;
+        }
+
+    .field-label {
+        font-family: 'Kanit', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .modern-input {
+        font-family: 'Kanit', sans-serif;
+        border: 1.5px solid var(--border-strong);
+        border-radius: 12px;
+        padding: 12px 18px;
+        height: 52px;
+        font-size: 1rem;
+        font-weight: 400;
+        color: var(--text-dark);
+        background-color: var(--bg-white);
+        transition: all 0.2s ease;
+    }
+
+        .modern-input:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 4px var(--orange-light);
+            outline: none;
+        }
+
+        .modern-input::placeholder {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-muted);
+        }
+
+    .btn-submit-rims {
+        background: var(--orange);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 16px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: 0.3s;
+        box-shadow: 0 8px 20px rgba(255, 146, 89, 0.25);
+    }
+
+        .btn-submit-rims:hover {
+            background: var(--orange-hover);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(255, 146, 89, 0.35);
+        }
+</style>
+
+<div class="container py-5 reg-wrapper">
+    <div class="card main-form-card animate__animated animate__fadeInUp">
+        <div class="form-header-box">
+            <h1 class="title-large">Register <span>Account</span></h1>
+            <p class="text-muted fw-light mt-1 mb-0" style="font-size: 0.95rem;">ลงทะเบียนบัญชีผู้ใช้งานเพื่อรับสิทธิประโยชน์และสั่งซื้อสินค้า</p>
+        </div>
+
+        <div class="card-body px-4 px-md-5 pb-5 pt-4">
+            <form asp-action="Register" method="post" id="regForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-4"></div>
+
+                <div class="section-divider">01. ข้อมูลส่วนตัว (Identity Details)</div>
+                <div class="row g-4 mb-2">
+                    <div class="col-md-12">
+                        <label class="field-label">ชื่อ-นามสกุล</label>
+                        <input asp-for="Customer_Name" placeholder="กรอกชื่อและนามสกุล" class="form-control modern-input" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="field-label">อีเมล</label>
+                        <input asp-for="Customer_Email" type="email" placeholder="example@email.com" class="form-control modern-input" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="field-label">รหัสผ่าน</label>
+                        <input asp-for="Password" type="password" placeholder="ตั้งรหัสผ่าน" class="form-control modern-input" required />
+                    </div>
+                </div>
+
+                <div class="section-divider">02. ข้อมูลการติดต่อ (Logistics)</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <label class="field-label">เบอร์โทรศัพท์</label>
+                        <input asp-for="Phone" placeholder="08XXXXXXXX" class="form-control modern-input" required />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="field-label">ที่อยู่</label>
+                        <input asp-for="Address" placeholder="บ้านเลขที่, ถนน, หมู่บ้าน" class="form-control modern-input" required />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">จังหวัด</label>
+                        <select asp-for="Province_Id" id="ProvinceSelect" class="form-select modern-input" required>
+                            <option value="">เลือกจังหวัด</option>
+                            @if (ViewBag.Provinces != null)
+                            {
+                                foreach (var p in ViewBag.Provinces)
+                                {
+                                    <option value="@p.Province_Id">@p.Province_Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">อำเภอ/เขต</label>
+                        <select asp-for="Amphur_Id" id="AmphurSelect" class="form-select modern-input" required>
+                            <option value="">เลือกอำเภอ</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">ตำบล/แขวง</label>
+                        <select asp-for="District_Id" id="DistrictSelect" class="form-select modern-input" required>
+                            <option value="">เลือกตำบล</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">รหัสไปรษณีย์</label>
+                        <input asp-for="PostalCode" id="PostalCode" placeholder="10XXX" class="form-control modern-input" required />
+                    </div>
+                </div>
+
+                <button type="button" id="btnRegister" class="btn btn-submit-rims w-100 mt-4">
+                    สมัครสมาชิก <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // 1. เมื่อเลือก จังหวัด -> ดึงข้อมูล อำเภอ
+            $('#ProvinceSelect').change(function () {
+                var provinceId = $(this).val();
+
+                $('#AmphurSelect').empty().append('<option value="">เลือกอำเภอ</option>');
+                $('#DistrictSelect').empty().append('<option value="">เลือกตำบล</option>');
+                $('#PostalCode').val('');
+
+                if (provinceId) {
+                    $.getJSON('@Url.Action("GetAmphurs", "Account")', { provinceId: provinceId }, function (data) {
+                        $.each(data, function (index, item) {
+                            $('#AmphurSelect').append('<option value="' + (item.amphur_Id || item.id) + '">' + (item.amphur_Name || item.name) + '</option>');
+                        });
+                    });
+                }
+            });
+
+            // 2. เมื่อเลือก อำเภอ -> ดึงข้อมูล ตำบล
+            $('#AmphurSelect').change(function () {
+                var amphurId = $(this).val();
+
+                $('#DistrictSelect').empty().append('<option value="">เลือกตำบล</option>');
+                $('#PostalCode').val('');
+
+                if (amphurId) {
+                    $.getJSON('@Url.Action("GetDistrictsByAmphur", "District")', { amphurId: amphurId }, function (data) {
+                        $.each(data, function (index, item) {
+                            $('#DistrictSelect').append('<option value="' + item.value + '" data-postcode="' + item.postCode + '">' + item.text + '</option>');
+                        });
+                    });
+                }
+            });
+
+            // 3. เมื่อเลือก ตำบล -> ออโต้ฟิล รหัสไปรษณีย์
+            $('#DistrictSelect').change(function () {
+                var selectedOption = $(this).find('option:selected');
+                var postcode = selectedOption.data('postcode');
+
+                if (postcode) {
+                    $('#PostalCode').val(postcode);
+                } else {
+                    $('#PostalCode').val('');
+                }
+            });
+
+            // ตรวจสอบฟอร์มก่อน Submit
+            $('#btnRegister').click(function () {
+                var form = $('#regForm')[0];
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                Swal.fire({
+                    title: 'ยืนยันการสมัคร?',
+                    text: 'ตรวจสอบข้อมูลก่อนยืนยัน',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#FF9259',
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

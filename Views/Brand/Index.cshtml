@@ -1,0 +1,339 @@
+﻿@model List<CS66_WebApplication1.Models.Brand>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int page = ViewBag.Page ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalItems = ViewBag.TotalItems ?? 0;
+    int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --rim-orange: #FF9259;
+        --rim-orange-light: #FFF2EC; /* สีส้มพาสเทลสว่าง */
+        --rim-orange-hover: #F37C3B;
+        --rim-bg-light: #F9FAFB; /* พื้นหลังเว็บสีขาวสว่าง */
+        --rim-card: #FFFFFF; /* พื้นหลังการ์ดขาวล้วน */
+        --rim-text-main: #2D2D2D; /* สีตัวอักษรหลัก */
+        --rim-text-muted: #7A7A7A; /* สีตัวอักษรรอง */
+        --rim-border: #EAEAEA; /* สีเส้นขอบเทาอ่อน */
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--rim-text-main);
+    }
+
+    /* Header Styling - ไล่เฉดสว่าง ขาว-ส้มพาสเทล ขอบซ้ายส้มเด่นชัด */
+    .brand-header {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        color: var(--rim-text-main);
+        padding: 35px 40px;
+        border-left: 6px solid var(--rim-orange);
+        border-radius: 12px;
+        margin-bottom: 30px;
+        border-top: 1px solid var(--rim-border);
+        border-right: 1px solid var(--rim-border);
+        border-bottom: 1px solid var(--rim-border);
+    }
+
+    /* Info Banner - ดีไซน์ขาวสะอาดขอบส้ม */
+    .status-banner {
+        background: #FFFFFF;
+        color: var(--rim-text-main);
+        border-radius: 12px;
+        padding: 1.2rem 1.8rem;
+        border: 1px solid var(--rim-border);
+        border-left: 5px solid var(--rim-orange);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.01);
+    }
+
+    /* Brand Avatar - สไตล์ Squircle โค้งมนพรีเมียม โทนส้มสว่าง */
+    .brand-avatar {
+        width: 48px;
+        height: 48px;
+        background: var(--rim-orange-light);
+        color: var(--rim-orange);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    /* Table & Container Card Customization */
+    .lux-card {
+        border: 1px solid var(--rim-border);
+        border-radius: 12px;
+        background: var(--rim-card);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.01);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: #FAFAFA;
+        color: var(--rim-text-main);
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 18px 20px;
+        border-bottom: 2px solid var(--rim-border);
+    }
+
+    .table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F5F5F5;
+    }
+
+    .brand-row {
+        transition: 0.2s;
+    }
+
+        .brand-row:hover {
+            background-color: var(--rim-orange-light) !important;
+        }
+
+    /* Buttons */
+    .btn-rim-orange {
+        background: var(--rim-orange);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+        .btn-rim-orange:hover {
+            background: var(--rim-orange-hover);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 146, 89, 0.3);
+        }
+
+    /* Action Icons (แก้ไข / ลบ) */
+    .action-icon {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid var(--rim-border);
+        transition: 0.2s;
+        background: #FFFFFF;
+        text-decoration: none;
+    }
+
+    .btn-edit {
+        color: #4A90E2;
+    }
+
+        .btn-edit:hover {
+            background: #4A90E2;
+            color: white;
+            border-color: #4A90E2;
+        }
+
+    .btn-delete {
+        color: #E05638;
+    }
+
+        .btn-delete:hover {
+            background: #E05638;
+            color: white;
+            border-color: #E05638;
+        }
+
+    /* Pagination - ปรับให้โค้งมนเข้าชุดขาวส้ม */
+    .pagination .page-link {
+        border: 1px solid var(--rim-border);
+        border-radius: 6px !important;
+        color: var(--rim-text-main);
+        margin: 0 3px;
+        font-weight: 500;
+        padding: 6px 12px;
+        transition: 0.2s;
+    }
+
+        .pagination .page-link:hover {
+            background: var(--rim-orange-light);
+            color: var(--rim-orange);
+            border-color: var(--rim-orange);
+        }
+
+    .pagination .page-item.active .page-link {
+        background: var(--rim-orange);
+        border-color: var(--rim-orange);
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background: #FAFAFA;
+        color: #CCC;
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="brand-header shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <p class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 2px;">บริการทะเบียนข้อมูลกลาง</p>
+                <h2 class="fw-bold mb-0">ระบบจัดการ<span style="color: var(--rim-orange)">แบรนด์สินค้า</span></h2>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+               
+                <a class="btn btn-rim-orange px-4 py-2" asp-controller="Brand" asp-action="Create">
+                    <i class="bi bi-plus-lg me-1"></i>ลงทะเบียนแบรนด์ใหม่
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4 animate__animated animate__fadeIn">
+        <div class="col-12">
+        </div>
+    </div>
+
+    <div class="card lux-card animate__animated animate__fadeInUp">
+        <div class="card-header bg-white py-4 px-4 border-bottom-0">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0 fw-semibold" style="font-size: 1.05rem;">ทำเนียบรายชื่อแบรนด์ทั้งหมด</h5>
+                </div>
+                <div class="col-md-6">
+                    <form method="get" class="d-flex justify-content-md-end align-items-center gap-2">
+                        <span class="text-muted small">แสดงรายการต่อหน้า</span>
+                        <select class="form-select form-select-sm border-1" name="pageSize" onchange="this.form.submit()" style="width: 85px; border-radius: 6px;">
+                            <option value="5" selected="@(pageSize == 5)">5</option>
+                            <option value="10" selected="@(pageSize == 10)">10</option>
+                            <option value="20" selected="@(pageSize == 20)">20</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4" width="150">รหัสแบรนด์</th>
+                        <th>ชื่อแบรนด์ / อัตลักษณ์</th>
+                        <th class="text-center">สถานะตรวจสอบ</th>
+                        <th class="pe-4 text-end" width="200">จัดการข้อมูล</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var brand in Model)
+                    {
+                        <tr class="brand-row">
+                            <td class="ps-4">
+                                <span class="text-muted fw-bold" style="font-family: 'Montserrat', sans-serif;">#@brand.Brand_Id.ToString("D4")</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="brand-avatar me-3">
+                                        @(string.IsNullOrWhiteSpace(brand.Brand_Name) ? "?" : brand.Brand_Name.Trim().Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold text-dark mb-0 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.95rem;">@brand.Brand_Name</div>
+                                        <div class="text-muted small" style="font-size: 0.8rem;">พันธมิตรที่ผ่านการรับรอง</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge px-3 py-2" style="font-size: 0.75rem; font-weight: 500; background: #E6F4EA; color: #137333; border-radius: 30px;">
+                                    <i class="bi bi-patch-check-fill me-1"></i> VERIFIED
+                                </span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a class="action-icon btn-edit" asp-controller="Brand" asp-action="Edit" asp-route-id="@brand.Brand_Id" title="แก้ไขแบรนด์">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button class="action-icon btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="@brand.Brand_Id" title="ลบแบรนด์">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-white py-4 px-4 border-top">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p class="text-muted small mb-0">
+                        กำลังแสดงผลแบรนด์ที่ <span class="text-dark fw-bold">@Model.Count</span> จากรายการทั้งหมดที่มี <span class="text-dark fw-bold">@totalItems</span> รายการแบรนด์
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    @if (totalPages > 1)
+                    {
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0 justify-content-center justify-content-md-end">
+                                <li class="page-item @(page == 1 ? "disabled" : "")">
+                                    <a class="page-link" asp-route-page="@(page - 1)" asp-route-pageSize="@pageSize"><i class="bi bi-chevron-left"></i></a>
+                                </li>
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(i == page ? "active" : "")">
+                                        <a class="page-link" asp-route-page="@i" asp-route-pageSize="@pageSize">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(page == totalPages ? "disabled" : "")">
+                                    <a class="page-link" asp-route-page="@(page + 1)" asp-route-pageSize="@pageSize"><i class="bi bi-chevron-right"></i></a>
+                                </li>
+                            </ul>
+                        </nav>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0" style="border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.1);">
+            <div class="modal-body p-5 text-center">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: #FDF3F1; color: #E05638; border-radius: 50%;">
+                    <i class="bi bi-exclamation-octagon fs-1"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">ยืนยันการลบแบรนด์?</h4>
+                <p class="text-muted small mb-4">คุณแน่ใจหรือไม่ว่าต้องการนำแบรนด์สินค้าชิ้นนี้ออกจากระบบฐานข้อมูลหลัก? เมื่อยืนยันแล้วข้อมูลและลิงก์เชื่อมโยงแบรนด์นี้จะไม่สามารถกู้คืนกลับมาได้</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light rounded-pill px-4 py-2 fw-medium" data-bs-dismiss="modal" style="border: 1px solid #ddd;">ยกเลิก</button>
+                    <form id="confirmDeleteForm" asp-action="Delete" asp-controller="Brand" method="post" class="d-inline">
+                        <input type="hidden" name="id" id="confirmDeleteId" value="" />
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-medium">ยืนยันลบแบรนด์</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var deleteModal = document.getElementById('confirmDeleteModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    var id = button.getAttribute('data-id');
+                    document.getElementById('confirmDeleteId').value = id;
+                });
+            }
+        });
+    </script>
+}

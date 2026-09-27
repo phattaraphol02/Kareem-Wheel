@@ -1,0 +1,109 @@
+@model IEnumerable<CS66_WebApplication1.Models.PurchaseOrder>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var itemCounts = ViewBag.ItemCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+
+    Func<string, (string cls, string label)> statusBadge = status => status switch
+    {
+        "Completed" => ("bg-success", "รับครบแล้ว"),
+        "PartiallyReceived" => ("bg-warning text-dark", "รับไม่ครบ"),
+        _ => ("bg-secondary", "รอตรวจรับ")
+    };
+}
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <div class="brand-header shadow-sm" style="background: linear-gradient(135deg, #FFFFFF 0%, #FFF2EB 100%); padding: 35px 40px; border-left: 6px solid #FF9760; border-radius: 12px; margin-bottom: 30px; border: 1px solid #EAEAEA;">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <p class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 2px;">จัดซื้อสินค้าเข้าร้าน</p>
+                <h2 class="fw-bold mb-0">ใบสั่งซื้อ<span style="color: #FF9760;">สินค้า (PO)</span></h2>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <a class="btn px-4 py-2 me-2" asp-controller="AdminSuppliers" asp-action="Index" style="border: 1px solid #FF9760; color: #FF9760; background: transparent; border-radius: 30px;">
+                    <i class="bi bi-truck me-1"></i> ซัพพลายเออร์
+                </a>
+                <a class="btn px-4 py-2" asp-action="Create" style="background: #FF9760; color: white; border-radius: 30px;">
+                    <i class="bi bi-plus-lg me-1"></i> สร้างใบสั่งซื้อใหม่
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card lux-card shadow-sm" style="border: 1px solid #EAEAEA; border-radius: 12px; background: #FFFFFF; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background: #FAFAFA;">
+                    <tr>
+                        <th class="ps-4" style="font-size: 0.85rem; padding: 18px 20px;">เลขที่ PO</th>
+                        <th style="font-size: 0.85rem; padding: 18px 20px;">ซัพพลายเออร์</th>
+                        <th style="font-size: 0.85rem; padding: 18px 20px;">วันที่สั่งซื้อ</th>
+                        <th style="font-size: 0.85rem; padding: 18px 20px;">วันที่รับสินค้า</th>
+                        <th class="text-center" style="font-size: 0.85rem; padding: 18px 20px;">รายการ</th>
+                        <th class="text-end" style="font-size: 0.85rem; padding: 18px 20px;">ยอดรวม</th>
+                        <th class="text-center" style="font-size: 0.85rem; padding: 18px 20px;">สถานะ</th>
+                        <th class="text-center pe-4" style="font-size: 0.85rem; padding: 18px 20px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var po in Model)
+                        {
+                            var (cls, label) = statusBadge(po.Status);
+                            int items = itemCounts.TryGetValue(po.PO_Id, out var c) ? c : 0;
+                            <tr>
+                                <td class="ps-4 align-middle fw-bold" style="font-family: 'Montserrat', sans-serif; color:#FF9760;">PO-@po.PO_Id.ToString("D4")</td>
+                                <td class="align-middle fw-semibold text-dark">@(po.Supplier != null ? po.Supplier.Name : "-")</td>
+                                <td class="align-middle text-muted">@po.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td class="align-middle">
+                                    @if (po.ReceivedAt.HasValue)
+                                    {
+                                        <span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>@po.ReceivedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">ยังไม่ได้รับ</span>
+                                    }
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-light text-dark border">@items รายการ</span>
+                                </td>
+                                <td class="align-middle text-end font-monospace fw-bold" style="color:#FF9760;">฿@po.GrandTotal.ToString("N2")</td>
+                                <td class="align-middle text-center">
+                                    <span class="badge @cls">@label</span>
+                                </td>
+                                <td class="text-center pe-4 align-middle">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Receive" asp-route-id="@po.PO_Id" class="btn btn-sm btn-outline-secondary px-3" style="border-radius:20px;">
+                                            <i class="bi bi-eye me-1"></i> ดูรายละเอียด
+                                        </a>
+                                        @if (po.Status != "Completed")
+                                        {
+                                            <a asp-action="Receive" asp-route-id="@po.PO_Id" class="btn btn-sm px-3"
+                                               style="background:#FF9760; color:#fff; border-radius:20px;">
+                                                <i class="bi bi-box-seam me-1"></i> ตรวจรับ
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-receipt d-block mb-3" style="font-size:3rem; color:#EAEAEA;"></i>
+                                <h6 class="fw-bold mb-1">ยังไม่มีใบสั่งซื้อในระบบ</h6>
+                                <a asp-action="Create" class="btn btn-sm px-4 mt-2" style="background:#FF9760; color:#fff; border-radius:30px;">
+                                    <i class="bi bi-plus-lg me-1"></i> สร้างใบสั่งซื้อแรก
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

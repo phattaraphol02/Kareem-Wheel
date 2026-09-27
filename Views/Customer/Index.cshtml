@@ -1,0 +1,206 @@
+﻿@using CS66_WebApplication1.Models
+@model List<Customer>
+
+@{
+    ViewData["Title"] = "Customer Registry - Management";
+    int currentPage = ViewBag.Page ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalItems = ViewBag.TotalItems ?? 0;
+    int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-hover: #f38349;
+        --rim-bg-light: #F9FAFB;
+        --rim-text-main: #2D2D2D;
+        --rim-border: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .page-title {
+        color: var(--rim-text-main);
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .data-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--rim-border);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .table-rim {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table-rim thead th {
+            background-color: #F8F9FA;
+            border-bottom: 2px solid var(--rim-border);
+            padding: 15px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--rim-text-main);
+        }
+
+        .table-rim tbody tr:hover {
+            background-color: #FFF2EB !important;
+        }
+
+        .table-rim tbody td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #F5F5F5;
+            font-size: 0.9rem;
+        }
+
+    .btn-rim {
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+
+    .btn-rim-primary {
+        background: var(--rim-orange);
+        color: white;
+        border: none;
+    }
+
+        .btn-rim-primary:hover {
+            background: var(--rim-orange-hover);
+            color: white;
+        }
+
+    .btn-action {
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        border: 1px solid var(--rim-border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 3px;
+        background: white;
+        color: var(--rim-text-main);
+        transition: 0.2s;
+    }
+
+        .btn-action:hover {
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+        }
+
+    .pagination .page-link {
+        border-radius: 8px !important;
+        margin: 0 3px;
+        color: var(--rim-text-main);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--rim-orange);
+        border-color: var(--rim-orange);
+        color: white;
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="page-title mb-1">รายชื่อลูกค้า</h2>
+            <p class="text-muted small">ระบบจัดการข้อมูลสมาชิกและฐานลูกค้าทั้งหมด</p>
+        </div>
+        <a class="btn btn-rim btn-rim-primary" asp-controller="Customer" asp-action="Create">
+            <i class="bi bi-person-plus me-2"></i> ลงทะเบียนลูกค้าใหม่
+        </a>
+    </div>
+
+    <div class="data-card">
+        <form method="get" class="row align-items-center g-3">
+            <div class="col-md-6">
+                <span class="text-muted small fw-bold">แสดงผลรายการ:</span>
+                <select class="form-select d-inline-block w-auto ms-2" name="pageSize" onchange="this.form.submit()">
+                    <option value="5" selected="@(pageSize == 5)">5 รายการ</option>
+                    <option value="10" selected="@(pageSize == 10)">10 รายการ</option>
+                    <option value="20" selected="@(pageSize == 20)">20 รายการ</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="data-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-rim align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center">ID</th>
+                        <th>ชื่อ-นามสกุล</th>
+                        <th>อีเมล</th>
+                        <th>ข้อมูลติดต่อ</th>
+                        <th class="text-center">รหัสไปรษณีย์</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model)
+                    {
+                        <tr>
+                            <td class="text-center fw-bold text-muted">#@customer.Customer_Id</td>
+                            <td><div class="fw-semibold text-dark">@customer.Customer_Name</div></td>
+                            <td class="text-muted">@customer.Customer_Email</td>
+                            <td>
+                                <div class="small"><i class="bi bi-telephone me-2 text-orange"></i>@customer.Phone</div>
+                                <div class="small text-muted mt-1">@customer.Amphur?.Amphur_Name, @customer.Province?.Province_Name</div>
+                            </td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">@customer.PostalCode</span></td>
+                            <td class="text-center">
+                                <a class="btn-action" asp-controller="Customer" asp-action="Edit" asp-route-id="@customer.Customer_Id"><i class="bi bi-pencil"></i></a>
+                                <button class="btn-action" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="@customer.Customer_Id"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* Pagination (คงเดิมแต่ปรับสีปุ่ม)*@
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-5">
+                <i class="bi bi-exclamation-circle text-warning fs-1"></i>
+                <h4 class="mt-3">ยืนยันการปิดการใช้งาน</h4>
+                <p class="text-muted">คุณต้องการปิดการใช้งานบัญชีลูกค้านี้ใช่หรือไม่? บัญชีจะเข้าสู่ระบบไม่ได้ แต่ประวัติการสั่งซื้อจะยังอยู่ในระบบ</p>
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <button class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                    <form asp-action="Delete" asp-controller="Customer" method="post" class="d-inline">
+                        <input type="hidden" name="id" id="confirmDeleteId" value="" />
+                        <button type="submit" class="btn btn-danger">ยืนยัน</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var deleteModal = document.getElementById('confirmDeleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        var id = event.relatedTarget.getAttribute('data-id');
+        document.getElementById('confirmDeleteId').value = id;
+    });
+</script>

@@ -1,0 +1,111 @@
+﻿@model CS66_WebApplication1.Models.Category
+
+@{
+    ViewData["Title"] = "แก้ไขประเภทสินค้า";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-border: #eef0f2;
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #FDFDFD;
+    }
+
+    .edit-wrapper {
+        max-width: 600px;
+        margin: 40px auto;
+    }
+
+    .main-form-card {
+        border: 1px solid var(--rim-border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 15px 40px rgba(255, 151, 96, 0.06);
+        padding: 40px;
+    }
+
+    .title-large {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 25px;
+        font-size: 1.8rem;
+    }
+
+        .title-large span {
+            color: var(--rim-orange);
+        }
+
+    .field-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.75rem;
+        color: #777;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+        font-weight: 700;
+    }
+
+    .modern-input {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        height: 50px;
+        transition: 0.3s;
+    }
+
+        .modern-input:focus {
+            border-color: var(--rim-orange);
+            box-shadow: 0 0 10px rgba(255, 151, 96, 0.15);
+            outline: none;
+        }
+
+    .btn-save {
+        background: var(--rim-orange);
+        color: white;
+        border-radius: 30px;
+        padding: 14px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        transition: 0.3s;
+        border: none;
+    }
+
+        .btn-save:hover {
+            background: #f38349;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 151, 96, 0.35);
+        }
+</style>
+
+<div class="container edit-wrapper">
+    <div class="main-form-card">
+        <h1 class="title-large">Edit <span>Category</span></h1>
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Category_Id" /> <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-4">
+                <label asp-for="Category_Name" class="field-label">ชื่อประเภทสินค้า</label>
+                <input asp-for="Category_Name" class="form-control modern-input" required />
+                <span asp-validation-for="Category_Name" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-save w-100">บันทึกการเปลี่ยนแปลง</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2 border-0 fw-bold" style="font-family:'Montserrat', sans-serif;">ยกเลิก</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

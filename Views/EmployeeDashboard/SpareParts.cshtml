@@ -1,0 +1,330 @@
+@model IEnumerable<CS66_WebApplication1.Models.SparePart>
+@using CS66_WebApplication1.Models
+
+@{
+    ViewData["Title"] = "เบิกอะไหล่";
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+
+    var myJobs = ViewBag.MyJobs as List<Appointment> ?? new List<Appointment>();
+    var myHistory = ViewBag.MyHistory as List<SparePartRequisition> ?? new List<SparePartRequisition>();
+    var parts = Model?.ToList() ?? new List<SparePart>();
+}
+
+@section Styles {
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+            padding: 25px 30px;
+            border-radius: 16px;
+            border-left: 6px solid var(--rim-orange);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .panel-card {
+            background: #FFFFFF;
+            border: 1px solid var(--rim-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .panel-head {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--rim-border);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-body { padding: 22px; }
+
+        .table thead th {
+            background: #FAFAFA;
+            padding: 14px 20px;
+            border-bottom: 2px solid var(--rim-border);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .table tbody td {
+            padding: 14px 20px;
+            vertical-align: middle;
+            border-bottom: 1px solid #F5F5F5;
+            font-size: 0.9rem;
+        }
+
+        .stock-pill {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .stock-ok { background: #E8F5E9; color: #2E7D32; }
+        .stock-low { background: #FFF3E0; color: #E65100; }
+        .stock-out { background: #FFEBEE; color: #C62828; }
+
+        .btn-withdraw {
+            background: var(--rim-orange);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 20px;
+            font-weight: 600;
+            transition: 0.2s;
+            width: 100%;
+        }
+
+            .btn-withdraw:hover { background: var(--rim-orange-hover); color: #fff; }
+            .btn-withdraw:disabled { background: #D5D5D5; cursor: not-allowed; }
+
+        .form-label-sm {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--rim-text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--rim-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: var(--rim-orange);
+                box-shadow: 0 0 0 3px rgba(255,151,96,0.12);
+            }
+
+        .empty-row {
+            text-align: center;
+            padding: 45px 20px;
+            color: var(--rim-text-muted);
+        }
+    </style>
+}
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-gear-wide-connected me-2" style="color: var(--rim-orange);"></i>เบิกอะไหล่</h3>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">เลือกอะไหล่ที่ต้องใช้ กดเบิกแล้วระบบจะตัดสต็อกให้ทันที</p>
+        </div>
+        <div class="text-end">
+            <span class="text-muted d-block" style="font-size: 0.78rem;">ผู้เบิก</span>
+            <span class="fw-bold">@ViewBag.EmployeeName</span>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-0 rounded-3 d-flex align-items-center">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="row g-4">
+
+    <!-- ฟอร์มเบิกอะไหล่ -->
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-head">
+                <i class="bi bi-box-arrow-down" style="color: var(--rim-orange);"></i> แบบฟอร์มเบิก
+            </div>
+            <div class="panel-body">
+                @if (!parts.Any())
+                {
+                    <p class="text-muted small mb-0">ยังไม่มีอะไหล่ในระบบ กรุณาแจ้งเจ้าของร้านให้เพิ่มอะไหล่ก่อน</p>
+                }
+                else
+                {
+                    <form asp-action="WithdrawSparePart" asp-controller="EmployeeDashboard" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">อะไหล่ที่ต้องการเบิก</label>
+                            <select name="sparePartId" id="partSelect" class="form-select" required>
+                                <option value="">-- เลือกอะไหล่ --</option>
+                                @foreach (var p in parts)
+                                {
+                                    <option value="@p.Id" data-stock="@p.StockQuantity" disabled="@(p.StockQuantity <= 0)">
+                                        @p.Name (เหลือ @p.StockQuantity)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">จำนวนที่เบิก</label>
+                            <input type="number" name="qty" id="qtyInput" class="form-control" value="1" min="1" required />
+                            <div class="form-text small" id="stockHint"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">ใช้กับงาน (ไม่บังคับ)</label>
+                            <select name="appointmentId" class="form-select">
+                                <option value="">-- ไม่ระบุงาน --</option>
+                                @foreach (var job in myJobs)
+                                {
+                                    <option value="@job.Id">
+                                        @(job.Service?.Service_Name ?? "บริการทั่วไป") — @(job.Customer?.Customer_Name ?? "ลูกค้า") (@job.Appointment_Date.ToString("dd/MM HH:mm"))
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">หมายเหตุ (ไม่บังคับ)</label>
+                            <input type="text" name="note" class="form-control" maxlength="255" placeholder="เช่น เปลี่ยนให้ลูกค้าเพิ่ม" />
+                        </div>
+
+                        <button type="submit" class="btn-withdraw">
+                            <i class="bi bi-check-lg me-1"></i> ยืนยันการเบิก
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- รายการอะไหล่คงเหลือ -->
+    <div class="col-lg-8">
+        <div class="panel-card">
+            <div class="panel-head">
+                <i class="bi bi-boxes" style="color: var(--rim-orange);"></i> อะไหล่คงเหลือในคลัง
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>ชื่ออะไหล่</th>
+                            <th class="text-end">ราคา</th>
+                            <th class="text-center">คงเหลือ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (parts.Any())
+                        {
+                            foreach (var p in parts)
+                            {
+                                string pillClass = p.StockQuantity <= 0 ? "stock-out"
+                                                 : p.StockQuantity <= 5 ? "stock-low" : "stock-ok";
+                                string pillText = p.StockQuantity <= 0 ? "หมด" : $"{p.StockQuantity} ชิ้น";
+
+                                <tr>
+                                    <td class="fw-bold">@p.Name</td>
+                                    <td class="text-end">฿@p.Price.ToString("N0")</td>
+                                    <td class="text-center"><span class="stock-pill @pillClass">@pillText</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="empty-row">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2" style="color:#EAEAEA;"></i>
+                                    ยังไม่มีอะไหล่ในระบบ
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ประวัติการเบิกของฉัน -->
+        <div class="panel-card">
+            <div class="panel-head">
+                <i class="bi bi-clock-history" style="color: var(--rim-orange);"></i> ประวัติการเบิกของฉัน
+                <span class="text-muted fw-normal ms-1" style="font-size: 0.8rem;">(20 รายการล่าสุด)</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>วันที่เบิก</th>
+                            <th>อะไหล่</th>
+                            <th class="text-center">จำนวน</th>
+                            <th>ใช้กับงาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (myHistory.Any())
+                        {
+                            foreach (var r in myHistory)
+                            {
+                                <tr>
+                                    <td>
+                                        <div>@r.RequestedAt.ToString("dd MMM yyyy")</div>
+                                        <small class="text-muted">@r.RequestedAt.ToString("HH:mm") น.</small>
+                                    </td>
+                                    <td class="fw-bold">
+                                        @(r.SparePart?.Name ?? "-")
+                                        @if (!string.IsNullOrEmpty(r.Note))
+                                        {
+                                            <small class="d-block text-muted fw-normal">@r.Note</small>
+                                        }
+                                    </td>
+                                    <td class="text-center fw-bold" style="color: var(--rim-orange);">@r.Qty</td>
+                                    <td class="small text-muted">
+                                        @(r.Appointment?.Service?.Service_Name ?? "ไม่ระบุงาน")
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="empty-row">
+                                    <i class="bi bi-journal-x fs-1 d-block mb-2" style="color:#EAEAEA;"></i>
+                                    ยังไม่มีประวัติการเบิก
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // จำกัดจำนวนที่เบิกไม่ให้เกินสต็อกที่มี
+        const partSelect = document.getElementById('partSelect');
+        const qtyInput = document.getElementById('qtyInput');
+        const stockHint = document.getElementById('stockHint');
+
+        if (partSelect) {
+            partSelect.addEventListener('change', function () {
+                const opt = this.options[this.selectedIndex];
+                const stock = parseInt(opt.dataset.stock || '0', 10);
+
+                if (stock > 0) {
+                    qtyInput.max = stock;
+                    if (parseInt(qtyInput.value, 10) > stock) qtyInput.value = stock;
+                    stockHint.textContent = `เบิกได้สูงสุด ${stock} ชิ้น`;
+                } else {
+                    qtyInput.removeAttribute('max');
+                    stockHint.textContent = '';
+                }
+            });
+        }
+    </script>
+}

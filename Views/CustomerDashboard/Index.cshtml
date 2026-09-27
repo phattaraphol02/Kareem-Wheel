@@ -1,0 +1,538 @@
+﻿@model List<CS66_WebApplication1.Models.Product>
+@{
+    ViewData["Title"] = "Customer Dashboard";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .welcome-banner {
+            position: relative;
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+            padding: 40px;
+            border-radius: 16px;
+            border-left: 6px solid var(--rim-orange);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+            .welcome-banner::after {
+                content: "";
+                position: absolute;
+                right: -60px;
+                top: -60px;
+                width: 220px;
+                height: 220px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(255,151,96,0.18) 0%, rgba(255,151,96,0) 70%);
+            }
+
+        .stat-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #FFFFFF;
+            padding: 22px 25px;
+            border-radius: 14px;
+            border: 1px solid var(--rim-border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1 1 220px;
+            transition: 0.25s ease;
+        }
+
+            .stat-card:hover {
+                border-color: var(--rim-orange);
+                box-shadow: 0 8px 20px rgba(255, 151, 96, 0.08);
+            }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .stat-icon-total {
+            background: var(--rim-orange-light);
+            color: var(--rim-orange);
+        }
+
+        .stat-icon-pending {
+            background: #FFF7E0;
+            color: #E8A200;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+            .section-heading h4 {
+                margin: 0;
+            }
+
+            .section-heading .count-pill {
+                background: var(--rim-orange-light);
+                color: var(--rim-orange);
+                font-size: 0.8rem;
+                font-weight: 600;
+                padding: 4px 14px;
+                border-radius: 20px;
+            }
+
+        /* --- Product Card --- */
+        .product-grid-card {
+            background: #FFFFFF;
+            border: 1px solid var(--rim-border);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: 0.3s ease;
+            position: relative;
+        }
+
+            .product-grid-card:hover {
+                border-color: var(--rim-orange);
+                box-shadow: 0 16px 32px rgba(255, 151, 96, 0.14);
+                transform: translateY(-4px);
+            }
+
+        .product-img-stage {
+            height: 170px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #FBFBFB 0%, #F2F2F2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .product-img-stage img {
+                max-height: 82%;
+                max-width: 82%;
+                object-fit: contain;
+                transition: transform 0.35s ease;
+            }
+
+        .product-grid-card:hover .product-img-stage img {
+            transform: scale(1.08);
+        }
+
+        .stock-ribbon {
+            position: absolute;
+            top: 14px;
+            left: -34px;
+            transform: rotate(-45deg);
+            width: 130px;
+            text-align: center;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 4px 0;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+            .stock-ribbon.out {
+                background: #6c757d;
+                color: #fff;
+            }
+
+        .product-img-stage.disabled img {
+            opacity: 0.35;
+            filter: grayscale(100%);
+        }
+
+        .product-body {
+            padding: 18px 18px 16px 18px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--rim-text-main);
+            min-height: 2.6em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .price-chip {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 3px;
+            background: var(--rim-orange-light);
+            color: var(--rim-orange-hover);
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin: 10px 0 14px 0;
+        }
+
+            .price-chip small {
+                font-weight: 500;
+                font-size: 0.7rem;
+                opacity: 0.85;
+            }
+
+        .btn-details {
+            background-color: #FFFFFF;
+            color: var(--rim-text-main);
+            border: 1.5px solid var(--rim-border);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+            .btn-details:hover {
+                background-color: var(--rim-bg-light);
+                border-color: #d1d1d1;
+                transform: translateY(-2px);
+            }
+
+        .btn-add-cart {
+            background-color: var(--rim-orange);
+            color: #FFFFFF;
+            border: 1.5px solid var(--rim-orange);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(255, 151, 96, 0.2);
+        }
+
+            .btn-add-cart:hover {
+                background-color: #e58856;
+                border-color: #e58856;
+                color: #FFFFFF;
+                box-shadow: 0 6px 15px rgba(255, 151, 96, 0.35);
+                transform: translateY(-2px);
+            }
+
+        .btn-out-of-stock {
+            background: #f1f3f5;
+            color: #adb5bd;
+            border: 1.5px solid #e9ecef;
+            cursor: not-allowed;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            border: 1.5px dashed var(--rim-border);
+            border-radius: 16px;
+            color: var(--rim-text-muted);
+        }
+
+        /* --- Filter Bar --- */
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 18px 12px 44px;
+            border: 1.5px solid var(--rim-border);
+            border-radius: 50px;
+            font-size: 0.92rem;
+            background: #FFFFFF;
+            transition: 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--rim-orange);
+            box-shadow: 0 0 0 3px rgba(255, 151, 96, 0.12);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #BBB;
+            font-size: 1.1rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--rim-text-muted);
+            white-space: nowrap;
+        }
+
+        .filter-btn {
+            padding: 6px 18px;
+            border-radius: 50px;
+            border: 1.5px solid var(--rim-border);
+            background: #FFFFFF;
+            color: var(--rim-text-main);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+        }
+
+        .filter-btn.active {
+            background: var(--rim-orange);
+            color: #FFFFFF;
+            border-color: var(--rim-orange);
+        }
+    </style>
+}
+
+<div class="welcome-banner">
+    <h6 class="text-uppercase" style="color: var(--rim-orange); letter-spacing: 2px;">Customer Portal</h6>
+    <h2 class="fw-bold mb-0">เลือกซื้อสินค้าคุณภาพ</h2>
+</div>
+
+<div class="stat-row">
+    <div class="stat-card">
+        <div class="stat-icon-box stat-icon-total"><i class="bi bi-bag-check-fill"></i></div>
+        <div>
+            <p class="text-muted mb-0" style="font-size: 0.85rem;">คำสั่งซื้อทั้งหมด</p>
+            <h3 class="fw-bold mb-0">@ViewBag.OrderCount</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-box stat-icon-pending"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+            <p class="text-muted mb-0" style="font-size: 0.85rem;">รอตรวจสอบ</p>
+            <h3 class="fw-bold mb-0" style="color: #E8A200;">@ViewBag.PendingOrders</h3>
+        </div>
+    </div>
+</div>
+
+<div class="section-heading">
+    <h4 class="fw-bold">รายการสินค้าทั้งหมด</h4>
+    <span class="count-pill" id="productCountPill">@Model.Count รายการ</span>
+</div>
+
+<div class="search-box">
+    <i class="bi bi-search"></i>
+    <input type="text" id="searchInput" placeholder="ค้นหาสินค้า... เช่น TE37, ยาง, Enkei">
+</div>
+
+<div class="filter-bar">
+    <div class="filter-group">
+        <span class="filter-group-label"><i class="bi bi-funnel me-1"></i>สภาพ:</span>
+        <button class="filter-btn active" data-filter="condition" data-value="all">ทั้งหมด</button>
+        <button class="filter-btn" data-filter="condition" data-value="มือ 1">มือ 1</button>
+        <button class="filter-btn" data-filter="condition" data-value="มือ 2">มือ 2</button>
+    </div>
+    <div class="filter-group">
+        <span class="filter-group-label"><i class="bi bi-tags me-1"></i>ประเภท:</span>
+        <button class="filter-btn active" data-filter="category" data-value="all">ทั้งหมด</button>
+        @if (ViewBag.Categories != null)
+        {
+            @foreach (var cat in (List<CS66_WebApplication1.Models.Category>)ViewBag.Categories)
+            {
+                <button class="filter-btn" data-filter="category" data-value="@cat.Category_Id">@cat.Category_Name</button>
+            }
+        }
+    </div>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-box-seam" style="font-size: 2rem;"></i>
+        <p class="mt-3 mb-0">ยังไม่มีสินค้าในระบบตอนนี้</p>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col product-item" data-condition="@item.Condition" data-category="@item.Category_Id">
+                <div class="product-grid-card d-flex flex-column h-100">
+                    @{
+                        bool outOfStock = item.Quantity <= 0;
+                    }
+                    <div class="product-img-stage @(outOfStock ? "disabled" : "")">
+                        @if (outOfStock)
+                        {
+                            <div class="stock-ribbon out">สินค้าหมด</div>
+                        }
+                        <img src="/Products/@item.ImageFileName" alt="@item.Product_Name">
+                    </div>
+                    <div class="product-body d-flex flex-column flex-grow-1">
+                        <div class="product-name">@item.Product_Name</div>
+                        <div>
+                            <span class="price-chip">฿@item.Price.ToString("N0") <small>บาท</small></span>
+                        </div>
+                        <div class="mb-2" style="font-size:0.82rem;">
+                            @if (outOfStock)
+                            {
+                                <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle me-1"></i>สินค้าหมดชั่วคราว</span>
+                            }
+                            else
+                            {
+                                <span class="text-success"><i class="bi bi-check-circle me-1"></i>มีสินค้า @item.Quantity ชิ้น</span>
+                            }
+                        </div>
+                        <div class="d-flex gap-2 mt-auto">
+                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.Product_Id" class="btn btn-details w-50 rounded-pill py-2 d-flex justify-content-center align-items-center gap-2">
+                                <i class="bi bi-info-circle"></i> รายละเอียด
+                            </a>
+
+                            @if (!outOfStock)
+                            {
+                                <button class="btn btn-add-cart w-50 rounded-pill py-2 d-flex justify-content-center align-items-center gap-2" onclick="addToCart(@item.Product_Id)">
+                                    <i class="bi bi-cart-plus"></i> ลงตะกร้า
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-out-of-stock w-50 rounded-pill py-2 d-flex justify-content-center align-items-center gap-2" disabled>
+                                    <i class="bi bi-x-circle"></i> สินค้าหมด
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <!-- ดึง SweetAlert2 มาใช้งาน (สำหรับลงตะกร้าและแจ้งผลลัพธ์) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // 🛒 1. ฟังก์ชันเพิ่มสินค้าลงตะกร้า (อัปเกรดให้ใช้ SweetAlert)
+        function addToCart(id) {
+        $.post('/Cart/AddToCart', { id: id })
+        .done(function (response) {
+        Swal.fire({
+        title: 'สำเร็จ!',
+        text: 'เพิ่มสินค้าลงตะกร้าเรียบร้อย',
+        icon: 'success',
+        confirmButtonColor: '#FF9760',
+        timer: 1500,
+        showConfirmButton: false
+        });
+
+        let badge = $('#cartCountBadge');
+        if (badge.length > 0) {
+        let currentCount = parseInt(badge.text()) || 0;
+        badge.text(currentCount + 1);
+        badge.removeClass('d-none');
+        }
+        })
+        .fail(function () {
+        Swal.fire({
+        title: 'แจ้งเตือน',
+        text: 'กรุณาเข้าสู่ระบบก่อนสั่งซื้อ',
+        icon: 'warning',
+        confirmButtonColor: '#FF9760'
+        }).then(() => {
+        window.location.href = '/Account/Login';
+        });
+        });
+        }
+
+        // === Filter & Search Logic ===
+        var activeCondition = 'all';
+        var activeCategory = 'all';
+        var searchKeyword = '';
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            searchKeyword = this.value.toLowerCase().trim();
+            applyFilters();
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var filterType = this.getAttribute('data-filter');
+                var value = this.getAttribute('data-value');
+
+                this.closest('.filter-group').querySelectorAll('.filter-btn').forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (filterType === 'condition') activeCondition = value;
+                if (filterType === 'category') activeCategory = value;
+
+                applyFilters();
+            });
+        });
+
+        function applyFilters() {
+            var items = document.querySelectorAll('.product-item');
+            var visibleCount = 0;
+            items.forEach(function(item) {
+                var condMatch = (activeCondition === 'all' || item.getAttribute('data-condition') === activeCondition);
+                var catMatch = (activeCategory === 'all' || item.getAttribute('data-category') === activeCategory);
+                var nameMatch = (searchKeyword === '' || item.querySelector('.product-name').textContent.toLowerCase().includes(searchKeyword));
+                if (condMatch && catMatch && nameMatch) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            document.getElementById('productCountPill').textContent = visibleCount + ' รายการ';
+        }
+
+        $(document).ready(function () {
+        // ==========================================
+        // 🎉 2. แจ้งเตือนหลังจากลูกค้ายืนยันหรือยกเลิกคิว (รับค่ามาจาก Controller)
+        // ==========================================
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+                Swal.fire({
+                title: 'สำเร็จ!',
+                text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["SuccessMessage"] as string ?? "")),
+                icon: 'success',
+                confirmButtonColor: '#2E7D32'
+                });
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+                Swal.fire({
+                title: 'ดำเนินการสำเร็จ',
+                text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["ErrorMessage"] as string ?? "")),
+                icon: 'info',
+                confirmButtonColor: '#FF9760'
+                });
+            </text>
+        }
+        });
+    </script>
+}

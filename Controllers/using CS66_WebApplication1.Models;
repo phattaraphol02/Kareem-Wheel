@@ -1,0 +1,12 @@
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace CS66_WebApplication1.Controllers
+{
+    public class using_CS66_WebApplication1 : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+}

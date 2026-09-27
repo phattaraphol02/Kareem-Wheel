@@ -1,0 +1,343 @@
+@model IEnumerable<CS66_WebApplication1.Models.Product>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "รายงานคลังสินค้า";
+
+    int totalItems = Model?.Count() ?? 0;
+    int outOfStock = Model?.Count(p => p.Quantity == 0) ?? 0;
+    int lowStock = Model?.Count(p => p.Quantity > 0 && p.Quantity < 5) ?? 0;
+    int normalStock = Model?.Count(p => p.Quantity >= 5) ?? 0;
+    decimal totalCostValue = Model?.Sum(p => p.CostPrice * p.Quantity) ?? 0;
+    decimal totalSellValue = Model?.Sum(p => p.Price * p.Quantity) ?? 0;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB;
+        --rim-bg-light: #F9FAFB;
+        --rim-border: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .admin-header {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        padding: 35px 40px;
+        border-left: 6px solid var(--rim-orange);
+        border-radius: 16px;
+        margin-bottom: 30px;
+        border: 1px solid var(--rim-border);
+    }
+
+    .stat-card {
+        background: #FFFFFF;
+        border: 1px solid var(--rim-border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-number {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 4px;
+    }
+
+    .table-card {
+        background: #FFFFFF;
+        border: 1px solid var(--rim-border);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: #FAFAFA;
+        padding: 16px 20px;
+        border-bottom: 2px solid var(--rim-border);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #888;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F5F5F5;
+        font-size: 0.9rem;
+    }
+
+    .table tbody tr:hover {
+        background-color: #FFFAF7;
+    }
+
+    .badge-condition {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+
+    .badge-new {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+
+    .badge-used {
+        background: #F3E5F5;
+        color: #7B1FA2;
+    }
+
+    .badge-status {
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .status-normal {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .status-low {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    .status-out {
+        background: #FFEBEE;
+        color: #C62828;
+    }
+
+    .product-code {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        color: #999;
+        font-size: 0.85rem;
+    }
+
+    .price-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+    }
+
+    .btn-brand-orange {
+        background: var(--rim-orange);
+        color: white;
+        border-radius: 50px;
+        padding: 10px 24px;
+        font-weight: 500;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-brand-orange:hover {
+        background: #F37C3B;
+        color: white;
+    }
+
+    .search-input {
+        border: 1px solid var(--rim-border);
+        border-radius: 10px;
+        padding: 10px 16px 10px 40px;
+        font-size: 0.9rem;
+        width: 280px;
+        transition: 0.2s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--rim-orange);
+        box-shadow: 0 0 0 3px rgba(255, 151, 96, 0.12);
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <div class="admin-header shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center">
+            <div class="me-4" style="background: var(--rim-orange); color: white; border-radius: 14px; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(255, 151, 96, 0.3);">
+                <i class="bi bi-box-seam-fill"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-1" style="font-family: 'Montserrat', sans-serif;">รายงาน<span style="color: var(--rim-orange);">คลังสินค้า</span></h2>
+                <p class="mb-0 text-muted">ตรวจสอบจำนวนและสถานะของสินค้าคงคลังทั้งหมด</p>
+            </div>
+        </div>
+        <button class="btn btn-brand-orange" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>พิมพ์รายงาน
+        </button>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card shadow-sm">
+                <div class="stat-number" style="color: #2D2D2D;">@totalItems</div>
+                <div class="stat-label">สินค้าทั้งหมด</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card shadow-sm">
+                <div class="stat-number" style="color: #2E7D32;">@normalStock</div>
+                <div class="stat-label">สต็อกปกติ</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card shadow-sm">
+                <div class="stat-number" style="color: #E65100;">@lowStock</div>
+                <div class="stat-label">ใกล้หมด</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card shadow-sm">
+                <div class="stat-number" style="color: #C62828;">@outOfStock</div>
+                <div class="stat-label">สินค้าหมด</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3 border-bottom" style="border-color: var(--rim-border) !important;">
+            <h5 class="mb-0 fw-semibold" style="font-size: 1rem;">
+                <i class="bi bi-list-ul me-2" style="color: var(--rim-orange);"></i>รายการสินค้าทั้งหมด
+            </h5>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end" style="font-size: 0.8rem;">
+                    <span class="text-muted">มูลค่าสต็อก (ทุน)</span>
+                    <span class="fw-bold ms-1 price-text" style="color: var(--rim-orange);">฿@totalCostValue.ToString("N0")</span>
+                    <span class="text-muted ms-3">มูลค่าสต็อก (ขาย)</span>
+                    <span class="fw-bold ms-1 price-text" style="color: #2E7D32;">฿@totalSellValue.ToString("N0")</span>
+                </div>
+                <div style="position: relative;">
+                    <i class="bi bi-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #BBB;"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="ค้นหาสินค้า...">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="stockTable">
+                <thead>
+                    <tr>
+                        <th class="ps-4">รหัส</th>
+                        <th>สินค้า</th>
+                        <th>ประเภท</th>
+                        <th class="text-center">สภาพ</th>
+                        <th class="text-center">คงเหลือ</th>
+                        <th class="text-end">ราคาทุน</th>
+                        <th class="text-end">ราคาขาย</th>
+                        <th class="text-center pe-4">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            string statusClass, statusText, statusIcon;
+                            if (item.Quantity == 0)
+                            {
+                                statusClass = "status-out";
+                                statusText = "หมด";
+                                statusIcon = "bi-x-circle-fill";
+                            }
+                            else if (item.Quantity < 5)
+                            {
+                                statusClass = "status-low";
+                                statusText = "ใกล้หมด";
+                                statusIcon = "bi-exclamation-triangle-fill";
+                            }
+                            else
+                            {
+                                statusClass = "status-normal";
+                                statusText = "ปกติ";
+                                statusIcon = "bi-check-circle-fill";
+                            }
+
+                            string conditionClass = item.Condition == "มือ 1" ? "badge-new" : "badge-used";
+                            string productCode = "WH" + item.Product_Id.ToString("D3");
+
+                            <tr class="stock-row">
+                                <td class="ps-4">
+                                    <span class="product-code">@productCode</span>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-dark">@item.Product_Name</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">@(item.Category?.Category_Name ?? "-")</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge-condition @conditionClass">@item.Condition</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold" style="color: @(item.Quantity == 0 ? "#C62828" : item.Quantity < 5 ? "#E65100" : "#2E7D32");">
+                                        @item.Quantity
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="price-text text-muted">฿@item.CostPrice.ToString("N0")</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="price-text" style="color: var(--rim-orange);">฿@item.Price.ToString("N0")</span>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <span class="badge-status @statusClass">
+                                        <i class="bi @statusIcon"></i> @statusText
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox-fill fs-1 d-block mb-3" style="color: #EAEAEA;"></i>
+                                ยังไม่มีข้อมูลสินค้าในสต็อก
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function () {
+            var keyword = this.value.toLowerCase();
+            var rows = document.querySelectorAll('.stock-row');
+            rows.forEach(function (row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(keyword) ? '' : 'none';
+            });
+        });
+    </script>
+}

@@ -1,0 +1,205 @@
+﻿@model ProductDto
+
+<style>
+    :root {
+        --kareem-dark: #4a3434;
+        --kareem-main: #c48b8b;
+        --kareem-soft: #fdf8f8;
+        --kareem-gold: #b38b59;
+    }
+
+    body {
+        background-color: var(--kareem-soft);
+    }
+
+    .admin-card {
+        border: none;
+        border-radius: 25px;
+        box-shadow: 0 15px 40px rgba(74, 52, 52, 0.05);
+        background: white;
+    }
+
+    .admin-header {
+        background: var(--kareem-dark);
+        color: white;
+        border-radius: 25px 25px 0 0 !important;
+        padding: 25px;
+    }
+
+    .form-label {
+        color: var(--kareem-dark);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 12px 15px;
+        transition: 0.3s;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--kareem-main);
+            box-shadow: none;
+            background-color: var(--kareem-soft);
+        }
+
+    /* Image Preview Box */
+    .preview-container {
+        border: 2px dashed #e0e0e0;
+        border-radius: 20px;
+        padding: 20px;
+        background: #fafafa;
+        min-height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #preview {
+        max-height: 250px;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    /* Buttons */
+    .btn-save {
+        background: var(--kareem-dark);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+
+        .btn-save:hover {
+            background: var(--kareem-gold);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-cancel {
+        border: 2px solid #eee;
+        color: #999;
+        border-radius: 12px;
+        padding: 15px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+        .btn-cancel:hover {
+            border-color: var(--kareem-dark);
+            color: var(--kareem-dark);
+        }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card admin-card animate__animated animate__fadeIn">
+
+                <div class="card-header admin-header d-flex align-items-center">
+                    <i class="bi bi-plus-circle-dotted fs-3 me-3"></i>
+                    <h4 class="mb-0 fw-bold">Add New Masterpiece</h4>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" enctype="multipart/form-data">
+
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Product Title</label>
+                                    <input class="form-control" asp-for="Product_Name" placeholder="Enter product name..." />
+                                    <span asp-validation-for="Product_Name" class="text-danger small"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <label class="form-label fw-bold">Brand Selection</label>
+                                        <select class="form-select" asp-for="Brand_Id" asp-items="ViewBag.BrandList">
+                                            <option value="">-- Choose --</option>
+                                        </select>
+                                        <span asp-validation-for="Brand_Id" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <label class="form-label fw-bold">Retail Price</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0">฿</span>
+                                            <input class="form-control border-start-0" asp-for="Price" placeholder="0.00" />
+                                        </div>
+                                        <span asp-validation-for="Price" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">The Story (Description)</label>
+                                    <textarea class="form-control" rows="5" asp-for="Description" placeholder="Write about this product..."></textarea>
+                                    <span asp-validation-for="Description" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold">Product Portrait</label>
+                                <div class="mb-3">
+                                    <input class="form-control" asp-for="ImageFile" type="file" id="fileInput" onchange="previewImage(event)" />
+                                    <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                                </div>
+
+                                <div class="preview-container">
+                                    <div id="no-image-text" class="text-muted text-center small">
+                                        <i class="bi bi-image d-block fs-1 opacity-25"></i>
+                                        Image Preview
+                                    </div>
+                                    <img id="preview" src="" style="display:none;" class="img-fluid" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-5 opacity-5">
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <button type="submit" class="btn btn-save w-100">
+                                    <i class="bi bi-cloud-arrow-up me-2"></i> PUBLISH PRODUCT
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <a class="btn btn-cancel w-100" asp-controller="Product" asp-action="Index">
+                                    DISCARD
+                                </a>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted small">Need help with product listing? <a href="#" class="text-dark">View Guide</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        var text = document.getElementById('no-image-text');
+        var output = document.getElementById('preview');
+
+        reader.onload = function() {
+            output.src = reader.result;
+            output.style.display = "block";
+            text.style.display = "none";
+        }
+
+        if(event.target.files[0]) {
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    }
+</script>

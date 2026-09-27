@@ -1,0 +1,428 @@
+@model CS66_WebApplication1.Models.Order
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = "รายละเอียดคำสั่งซื้อ";
+    var details = Model.OrderDetails ?? new List<CS66_WebApplication1.Models.OrderDetail>();
+    int? userRole = Context.Session.GetInt32("Role");
+
+    string rawStatus = Model.Status ?? "";
+    string statusBadgeClass = "bg-light text-dark";
+    string displayStatus = rawStatus == "" ? "กำลังดำเนินการ" : rawStatus;
+
+    if (rawStatus == "New" || rawStatus == "Pending") { statusBadgeClass = "bg-secondary-subtle text-secondary-emphasis"; displayStatus = "รอชำระเงิน"; }
+    else if (rawStatus == "PendingVerify") { statusBadgeClass = "bg-warning-subtle text-warning-emphasis"; displayStatus = "ชำระเงินแล้ว (รอตรวจสอบ)"; }
+    else if (rawStatus == "Processing") { statusBadgeClass = "bg-info-subtle text-info-emphasis"; displayStatus = "เตรียมสินค้า"; }
+    else if (rawStatus == "Shipped") { statusBadgeClass = "bg-primary-subtle text-primary-emphasis"; displayStatus = "กำลังจัดส่ง"; }
+    else if (rawStatus == "Delivered" || rawStatus == "Completed") { statusBadgeClass = "bg-success-subtle text-success-emphasis"; displayStatus = "ส่งสำเร็จ"; }
+    else if (rawStatus == "Cancelled") { statusBadgeClass = "bg-danger-subtle text-danger-emphasis"; displayStatus = "ยกเลิก"; }
+
+    // คำนวณ step สำหรับ progress tracker (1-5)
+    int shippingStep = 1; // สั่งซื้อแล้ว
+    if (rawStatus == "PendingVerify") { shippingStep = 2; } // ชำระเงินแล้ว
+    else if (rawStatus == "Processing") { shippingStep = 3; } // เตรียมสินค้า
+    else if (rawStatus == "Shipped") { shippingStep = 4; } // กำลังจัดส่ง
+    else if (rawStatus == "Delivered" || rawStatus == "Completed") { shippingStep = 5; } // ส่งสำเร็จ
+}
+
+<style>
+    body {
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .rim-card-header {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .img-slip {
+        max-height: 400px;
+        object-fit: contain;
+        width: 100%;
+        border: 1px solid #ddd;
+    }
+
+    .delivery-box {
+        background: #FFF2EB;
+        border: 1px dashed #FF9760;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    /* ── Shipping Progress Tracker ── */
+    .shipping-tracker {
+        background: #FFFFFF;
+        border: 1px solid #EAEAEA;
+        border-radius: 16px;
+        padding: 35px 20px 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+
+    .tracker-title {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 30px;
+    }
+
+    .tracker-steps {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .tracker-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 0 0 auto;
+    }
+
+    .tracker-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        background: #D5D5D5;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .tracker-circle.active {
+        background: #FF9760;
+        box-shadow: 0 6px 18px rgba(255, 151, 96, 0.35);
+    }
+
+    .tracker-circle.done {
+        background: #4CAF50;
+        box-shadow: 0 6px 18px rgba(76, 175, 80, 0.3);
+    }
+
+    .tracker-label {
+        margin-top: 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #AAAAAA;
+        text-align: center;
+        max-width: 80px;
+    }
+
+    .tracker-label.active { color: #FF9760; }
+    .tracker-label.done { color: #4CAF50; }
+
+    .tracker-line {
+        flex: 1;
+        height: 4px;
+        background: #E0E0E0;
+        margin: 0 6px;
+        border-radius: 2px;
+        margin-top: 30px;
+        min-width: 30px;
+    }
+
+    .tracker-line.active { background: #4CAF50; }
+
+    @@media (max-width: 576px) {
+        .tracker-circle { width: 44px; height: 44px; font-size: 1.1rem; }
+        .tracker-line { margin-top: 20px; min-width: 14px; }
+        .tracker-label { font-size: 0.65rem; max-width: 60px; }
+    }
+</style>
+
+<div class="page-header-rim">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end">
+            <div>
+                <h2 class="page-title">รายละเอียดคำสั่งซื้อ</h2>
+                <div style="width: 50px; height: 3px; background: var(--rim-orange); margin-top: 10px;"></div>
+            </div>
+            <div class="text-end">
+                <span class="rim-label d-block">สถานะ</span>
+                <span class="badge border rounded-pill px-3 py-2 @statusBadgeClass">@displayStatus</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    @if (Model.DeliveryMethod != "Pickup" && rawStatus != "Cancelled")
+    {
+        <div class="shipping-tracker">
+            <div class="tracker-title">ขั้นตอนการจัดส่งสินค้า</div>
+            <div class="tracker-steps">
+
+                @* Step 1: สั่งซื้อแล้ว *@
+                <div class="tracker-step">
+                    <div class="tracker-circle @(shippingStep > 1 ? "done" : "active")">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <span class="tracker-label @(shippingStep > 1 ? "done" : "active")">สั่งซื้อแล้ว</span>
+                </div>
+
+                <div class="tracker-line @(shippingStep >= 2 ? "active" : "")"></div>
+
+                @* Step 2: ชำระเงินแล้ว *@
+                <div class="tracker-step">
+                    <div class="tracker-circle @(shippingStep > 2 ? "done" : shippingStep == 2 ? "active" : "")">
+                        <i class="bi bi-credit-card-2-back"></i>
+                    </div>
+                    <span class="tracker-label @(shippingStep > 2 ? "done" : shippingStep == 2 ? "active" : "")">ชำระเงินแล้ว</span>
+                </div>
+
+                <div class="tracker-line @(shippingStep >= 3 ? "active" : "")"></div>
+
+                @* Step 3: เตรียมสินค้า *@
+                <div class="tracker-step">
+                    <div class="tracker-circle @(shippingStep > 3 ? "done" : shippingStep == 3 ? "active" : "")">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <span class="tracker-label @(shippingStep > 3 ? "done" : shippingStep == 3 ? "active" : "")">เตรียมสินค้า</span>
+                </div>
+
+                <div class="tracker-line @(shippingStep >= 4 ? "active" : "")"></div>
+
+                @* Step 4: กำลังจัดส่ง *@
+                <div class="tracker-step">
+                    <div class="tracker-circle @(shippingStep > 4 ? "done" : shippingStep == 4 ? "active" : "")">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <span class="tracker-label @(shippingStep > 4 ? "done" : shippingStep == 4 ? "active" : "")">กำลังจัดส่ง</span>
+                </div>
+
+                <div class="tracker-line @(shippingStep >= 5 ? "active" : "")"></div>
+
+                @* Step 5: ส่งสำเร็จ *@
+                <div class="tracker-step">
+                    <div class="tracker-circle @(shippingStep == 5 ? "done" : "")">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <span class="tracker-label @(shippingStep == 5 ? "done" : "")">ส่งสำเร็จ</span>
+                </div>
+
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="rim-card mb-4">
+                <div class="rim-card-header">ข้อมูลทั่วไป</div>
+                <div class="card-body p-4 p-md-5">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="rim-label">เลขออเดอร์</p>
+                            <h4 class="fw-bold mb-4" style="color: var(--rim-orange); font-family: 'Montserrat', sans-serif;">@(Model.OrderNumber ?? $"ORD{Model.Order_Id:D4}")</h4>
+                            <p class="rim-label">ชื่อลูกค้า</p>
+                            <p class="rim-value">@(Model.Customer?.Customer_Name ?? "Guest")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="rim-label">ที่อยู่จัดส่ง</p>
+                            <p class="rim-value">@Model.Customer?.Address, จ.@(Model.Customer?.Province?.Province_Name), อ.@(Model.Customer?.Amphur?.Amphur_Name) @Model.Customer?.PostalCode</p>
+                        </div>
+                    </div>
+
+                    <div class="delivery-box" style="border: 1px solid #FFD6BE; background-color: #FFF9F6; padding: 20px; border-radius: 12px;">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3" style="font-size: 1.5rem; color: var(--rim-orange);">
+                                <i class="bi @(Model.DeliveryMethod == "Pickup" ? "bi-shop" : "bi-truck")"></i>
+                            </div>
+                            <div>
+                                <p class="rim-label mb-0" style="font-size: 0.75rem; color: #888;">วิธีการรับสินค้า</p>
+                                <h5 class="fw-bold mb-0" style="color: #333;">
+                                    @(Model.DeliveryMethod == "Pickup" ? "นัดรับสินค้าที่ร้าน (Click & Collect)" : "จัดส่งถึงบ้าน (Home Delivery)")
+                                </h5>
+                            </div>
+                        </div>
+
+                        @if (Model.DeliveryMethod == "Pickup" && Model.AppointmentDate != null)
+                        {
+                            <div class="pt-2 border-top" style="border-color: #FFD6BE !important;">
+                                <div class="d-flex align-items-center mt-2 text-rim">
+                                    <i class="bi bi-calendar-check me-2"></i>
+                                    <span style="font-size: 0.85rem;">นัดหมายวันที่:</span>
+                                    <b class="ms-2" style="color: var(--rim-text);">@Model.AppointmentDate?.ToString("dd MMM yyyy, HH:mm น.")</b>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.DeliveryMethod != "Pickup" && !string.IsNullOrEmpty(Model.TrackingNo))
+                        {
+                            <div class="pt-2 border-top" style="border-color: #FFD6BE !important;">
+                                @if (!string.IsNullOrEmpty(Model.ShippingCompany))
+                                {
+                                    <div class="d-flex align-items-center mt-2 text-rim">
+                                        <i class="bi bi-building me-2"></i>
+                                        <span style="font-size: 0.85rem;">บริษัทขนส่ง:</span>
+                                        <b class="ms-2" style="color: var(--rim-text);">@Model.ShippingCompany</b>
+                                    </div>
+                                }
+                                <div class="d-flex align-items-center mt-2 text-rim">
+                                    <i class="bi bi-upc-scan me-2"></i>
+                                    <span style="font-size: 0.85rem;">เลขพัสดุ:</span>
+                                    <b class="ms-2" style="color: var(--rim-text);">@Model.TrackingNo</b>
+                                </div>
+                                @if (Model.ShippedAt != null)
+                                {
+                                    <div class="d-flex align-items-center mt-1 text-rim">
+                                        <i class="bi bi-clock-history me-2"></i>
+                                        <span style="font-size: 0.85rem;">จัดส่งเมื่อ:</span>
+                                        <b class="ms-2" style="color: var(--rim-text);">@Model.ShippedAt?.ToString("dd MMM yyyy, HH:mm น.")</b>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="rim-card">
+                <div class="rim-card-header">รายการสินค้า</div>
+                <table class="table rim-table mb-0">
+                    <thead><tr><th class="ps-4">สินค้า</th><th>รายละเอียด</th><th class="text-end">ราคา</th><th class="text-center">จำนวน</th><th class="text-end pe-4">รวม</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in details)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@item.Product?.Product_Name</td>
+                                <td class="text-muted small">@(item.Product?.Description ?? "-")</td>
+                                <td class="text-end">฿@item.Price.ToString("N0")</td>
+                                <td class="text-center">@item.Qty</td>
+                                <td class="text-end pe-4 fw-bold">฿@((item.Price * item.Qty).ToString("N0"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="p-4 text-end bg-light">
+                    <span class="rim-label me-3">ยอดรวมสุทธิ</span>
+                    <span class="h4 fw-bold text-rim">฿@Model.GrandTotal.ToString("N0")</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="rim-card p-4 text-center">
+                <div class="rim-card-header mb-3">หลักฐานการชำระเงิน</div>
+                @if (!string.IsNullOrEmpty(Model.SlipImage))
+                {
+                    <a href="/slips/@Model.SlipImage" target="_blank">
+                        <img src="/slips/@Model.SlipImage" class="img-fluid img-slip mb-3 rounded" alt="Slip" />
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted small py-4">ยังไม่มีรูปสลิป</p>
+                    @if (userRole != 9 && (Model.Status == "New" || Model.Status == "Pending"))
+                    {
+                        <form asp-controller="Order" asp-action="UploadSlip" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="orderId" value="@Model.Order_Id" />
+                            <input type="file" name="slip" class="form-control mb-3" required />
+                            <button type="submit" class="btn btn-rim btn-rim-orange w-100">อัปโหลดสลิป</button>
+                        </form>
+                    }
+                }
+            </div>
+
+            @* ── ฟอร์ม 1: ยืนยันสลิป (แอดมิน) → สถานะเป็น "เตรียมสินค้า" ── *@
+            @if (userRole == 9 && Model.Status == "PendingVerify" && !string.IsNullOrEmpty(Model.SlipImage))
+            {
+                <div class="rim-card p-4 mt-3">
+                    <div class="rim-card-header mb-3 text-start">
+                        <i class="bi bi-check-circle" style="color: var(--rim-orange);"></i> ยืนยันสลิปการชำระเงิน
+                    </div>
+                    <form asp-controller="Order" asp-action="ConfirmPayment" method="post">
+                        <input type="hidden" name="orderId" value="@Model.Order_Id" />
+                        <input type="hidden" name="returnTo" value="Details" />
+
+                        <div class="alert py-2 mb-3" style="background-color: #FFF2EB; border: 1px solid #FFD6BE; border-radius: 10px; font-size: 0.85rem; color: #E58856;">
+                            <i class="bi bi-info-circle-fill me-1"></i> ตรวจสอบสลิปแล้วกดยืนยัน สถานะจะเปลี่ยนเป็น "เตรียมสินค้า" สามารถเพิ่มเลขพัสดุทีหลังได้
+                        </div>
+
+                        <button type="submit" class="btn w-100 fw-bold rounded-pill" style="background: #4CAF50; color: white;">
+                            <i class="bi bi-check-lg me-1"></i> ยืนยันสลิป
+                        </button>
+                    </form>
+                </div>
+            }
+
+            @* ── ฟอร์ม 2: กรอกเลขพัสดุ (แอดมิน) → สถานะเป็น "กำลังจัดส่ง" ── *@
+            @if (userRole == 9 && (Model.Status == "Processing" || (Model.Status == "Shipped" && string.IsNullOrEmpty(Model.TrackingNo))))
+            {
+                <div class="rim-card p-4 mt-3">
+                    <div class="rim-card-header mb-3 text-start">
+                        <i class="bi bi-truck" style="color: var(--rim-orange);"></i> กรอกข้อมูลจัดส่ง
+                    </div>
+                    <form asp-controller="Order" asp-action="UpdateShipping" method="post">
+                        <input type="hidden" name="id" value="@Model.Order_Id" />
+                        <input type="hidden" name="status" value="Shipped" />
+                        <input type="hidden" name="returnTo" value="Details" />
+
+                        <div class="mb-3 text-start">
+                            <label class="form-label fw-bold small text-muted">บริษัทขนส่ง</label>
+                            <select name="shippingCompany" class="form-select" required>
+                                <option value="" disabled selected>-- เลือกบริษัทขนส่ง --</option>
+                                <option value="Kerry Express">Kerry Express</option>
+                                <option value="Flash Express">Flash Express</option>
+                                <option value="J&T Express">J&T Express</option>
+                                <option value="Thailand Post">ไปรษณีย์ไทย</option>
+                                <option value="Ninja Van">Ninja Van</option>
+                                <option value="Best Express">Best Express</option>
+                                <option value="DHL">DHL</option>
+                                <option value="Other">อื่นๆ</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3 text-start">
+                            <label class="form-label fw-bold small text-muted">เลขพัสดุ (Tracking Number)</label>
+                            <input type="text" name="trackingNo" class="form-control" required placeholder="เช่น TH123456789..." />
+                        </div>
+
+                        <div class="alert py-2 mb-3" style="background-color: #FFF2EB; border: 1px solid #FFD6BE; border-radius: 10px; font-size: 0.85rem; color: #E58856;">
+                            <i class="bi bi-info-circle-fill me-1"></i> กดยืนยันแล้วลูกค้าจะเห็นสถานะ "กำลังจัดส่ง" พร้อมเลขพัสดุทันที
+                        </div>
+
+                        <button type="submit" class="btn w-100 fw-bold rounded-pill" style="background: #FF9760; color: white;">
+                            <i class="bi bi-send me-1"></i> ยืนยันจัดส่ง
+                        </button>
+                    </form>
+                </div>
+            }
+
+            @* ── ฟอร์ม 3: ยืนยันส่งสำเร็จ (แอดมิน) → สถานะเป็น "Delivered" ── *@
+            @if (userRole == 9 && Model.Status == "Shipped" && !string.IsNullOrEmpty(Model.TrackingNo))
+            {
+                <div class="rim-card p-4 mt-3">
+                    <div class="rim-card-header mb-3 text-start">
+                        <i class="bi bi-check-circle-fill" style="color: #4CAF50;"></i> ยืนยันส่งสำเร็จ
+                    </div>
+                    <form asp-controller="Order" asp-action="UpdateShipping" method="post">
+                        <input type="hidden" name="id" value="@Model.Order_Id" />
+                        <input type="hidden" name="shippingCompany" value="@Model.ShippingCompany" />
+                        <input type="hidden" name="trackingNo" value="@Model.TrackingNo" />
+                        <input type="hidden" name="status" value="Delivered" />
+                        <input type="hidden" name="returnTo" value="Details" />
+
+                        <div class="alert py-2 mb-3" style="background-color: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 10px; font-size: 0.85rem; color: #2E7D32;">
+                            <i class="bi bi-info-circle-fill me-1"></i> ยืนยันว่าลูกค้าได้รับสินค้าเรียบร้อยแล้ว สถานะจะเปลี่ยนเป็น "ส่งสำเร็จ"
+                        </div>
+
+                        <button type="submit" class="btn w-100 fw-bold rounded-pill" style="background: #4CAF50; color: white;">
+                            <i class="bi bi-check-all me-1"></i> ยืนยันส่งสำเร็จ
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>

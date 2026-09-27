@@ -1,0 +1,132 @@
+﻿@model CS66_WebApplication1.Models.Customer
+@{
+    ViewData["Title"] = "รายละเอียดผู้ใช้งานแบบละเอียด";
+}
+
+<style>
+    .light-container {
+        max-width: 900px;
+        margin: 40px auto;
+    }
+
+    .card-light {
+        background: #ffffff;
+        border: 1px solid #E9ECEF;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    }
+
+    .section-title {
+        color: #2D2D2D;
+        font-weight: 700;
+        border-left: 4px solid #FF9760;
+        padding-left: 15px;
+        margin-bottom: 25px;
+    }
+
+    .label-light {
+        color: #6C757D;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .value-light {
+        color: #212529;
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 20px;
+        background: #F8F9FA;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .btn-light-theme {
+        background: #FF9760;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 25px;
+        font-weight: 600;
+        border: none;
+    }
+</style>
+
+<div class="container light-container">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted">
+            <i class="bi bi-chevron-left"></i> ย้อนกลับ
+        </a>
+        <h3 class="fw-bold mt-2">ข้อมูลผู้ใช้งาน (Detail View)</h3>
+    </div>
+
+    <div class="card-light">
+        <h5 class="section-title">ข้อมูลส่วนตัวและที่อยู่</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="label-light">ชื่อ - นามสกุล</div>
+                <div class="value-light">@Model.Customer_Name</div>
+            </div>
+            <div class="col-md-4">
+                <div class="label-light">อีเมล</div>
+                <div class="value-light">@Model.Customer_Email</div>
+            </div>
+            <div class="col-md-4">
+                <div class="label-light">เบอร์โทรศัพท์</div>
+                <div class="value-light">@(string.IsNullOrEmpty(Model.Phone) ? "-" : Model.Phone)</div>
+            </div>
+
+            <div class="col-12">
+                <div class="label-light">ที่อยู่</div>
+                <div class="value-light">@(string.IsNullOrEmpty(Model.Address) ? "-" : Model.Address)</div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="label-light">จังหวัด</div>
+                <div class="value-light">@(Model.Province?.Province_Name ?? "-")</div>
+            </div>
+            <div class="col-md-3">
+                <div class="label-light">อำเภอ</div>
+                <div class="value-light">@(Model.Amphur?.Amphur_Name ?? "-")</div>
+            </div>
+            <div class="col-md-3">
+                <div class="label-light">ตำบล</div>
+                <div class="value-light">@(Model.District?.District_Name ?? "-")</div>
+            </div>
+            <div class="col-md-3">
+                <div class="label-light">รหัสไปรษณีย์</div>
+                <div class="value-light">@(string.IsNullOrEmpty(Model.PostalCode) ? "-" : Model.PostalCode)</div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="label-light">บทบาท (Role)</div>
+                <div class="value-light">
+                    @if (Model.Role == 9)
+                    {
+                        <span>Administrator</span>
+                    }
+                    else if (Model.Role == 2)
+                    {
+                        <span>Staff</span>
+                    }
+                    else
+                    {
+                        <span>Customer</span>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="label-light">รหัสผ่าน (Hash)</div>
+                <div class="value-light" style="font-family: monospace;">**********</div>
+            </div>
+        </div>
+
+        <div class="text-end mt-4 pt-3 border-top">
+            <a asp-action="Edit" asp-route-id="@Model.Customer_Id" class="btn btn-light-theme">
+                <i class="bi bi-pencil"></i> แก้ไขข้อมูล
+            </a>
+        </div>
+    </div>
+</div>

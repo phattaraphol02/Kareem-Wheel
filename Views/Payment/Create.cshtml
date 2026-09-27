@@ -1,0 +1,316 @@
+﻿@{
+    ViewData["Title"] = "แจ้งชำระเงิน";
+    var orderId = ViewBag.OrderId;
+    var order = ViewBag.Order;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden animate-fade-in">
+
+                <div class="bg-primary p-4 text-white text-center">
+                    <h4 class="fw-bold mb-1">
+                        <i class="bi bi-cash-coin me-2"></i>แจ้งชำระเงิน
+                    </h4>
+
+                    <p class="mb-0 opacity-75 small text-uppercase fw-semibold">
+                        คำสั่งซื้อเลขที่ #@orderId
+                    </p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <form id="paymentForm"
+                          asp-controller="Payment"
+                          asp-action="Create"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        <input type="hidden" name="orderId" value="@orderId" />
+
+                        <!-- Amount -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">
+                                จำนวนเงินที่โอน (บาท)
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text bg-light border-end-0 text-primary fw-bold">
+                                    ฿
+                                </span>
+
+                                <input type="number"
+                                       id="amountInput"
+                                       name="amount"
+                                       step="0.01"
+                                       value="@order?.GrandTotal"
+                                       class="form-control border-start-0 bg-light shadow-none py-2 fs-5 fw-bold text-primary"
+                                       required />
+
+                            </div>
+                        </div>
+
+                        <!-- Paid Date -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">
+                                วันที่โอนเงิน
+                            </label>
+
+                            <input type="datetime-local"
+                                   name="paidAt"
+                                   class="form-control bg-light shadow-none"
+                                   required />
+                        </div>
+
+                        <!-- Upload Slip -->
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold text-dark">
+                                หลักฐานการชำระเงิน (สลิป)
+                            </label>
+
+                            <div id="dropArea"
+                                 class="upload-area border-2 border-dashed rounded-4 p-4 text-center bg-light mb-2"
+                                 onclick="document.getElementById('slipInput').click()">
+
+                                <i class="bi bi-cloud-arrow-up text-primary display-5"></i>
+
+                                <p class="small text-muted mb-0 fw-medium">
+                                    คลิกเพื่ออัปโหลดรูปภาพสลิป
+                                </p>
+
+                                <input type="file"
+                                       id="slipInput"
+                                       name="slip"
+                                       class="d-none"
+                                       accept="image/*"
+                                       required
+                                       onchange="previewFile()" />
+
+                            </div>
+
+                            <!-- Preview -->
+                            <div id="previewContainer"
+                                 class="d-none text-center mt-3 animate-zoom-in">
+
+                                <div class="position-relative d-inline-block">
+
+                                    <img id="imgPreview"
+                                         src=""
+                                         class="img-fluid rounded-3 shadow-sm border"
+                                         style="max-height:250px;" />
+
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-2 cursor-pointer"
+                                          onclick="clearPreview(event)">
+                                        ✕
+                                    </span>
+
+                                </div>
+
+                                <p class="text-success small mt-2 fw-bold">
+                                    เลือกไฟล์เรียบร้อยแล้ว
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-3 pt-2">
+
+                            <button type="button"
+                                    class="btn btn-primary btn-lg rounded-pill shadow fw-bold py-3"
+                                    onclick="showConfirmPayment()">
+
+                                <i class="bi bi-send-fill me-2"></i>
+                                ส่งข้อมูลแจ้งชำระเงิน
+
+                            </button>
+
+                            <a asp-controller="Order"
+                               asp-action="History"
+                               class="btn btn-link text-decoration-none text-muted fw-semibold">
+
+                                ยกเลิก
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+
+<div class="modal fade" id="confirmPaymentModal">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 shadow-lg rounded-4">
+
+            <div class="modal-header border-0">
+
+                <h5 class="fw-bold">ยืนยันการแจ้งชำระเงิน</h5>
+
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <div class="modal-body text-center">
+
+                <p class="text-muted">
+                    กรุณาตรวจสอบจำนวนเงินอีกครั้ง
+                </p>
+
+                <h2 class="fw-bold text-primary"
+                    id="confirmAmountDisplay">
+                    ฿0.00
+                </h2>
+
+            </div>
+
+            <div class="modal-footer border-0">
+
+                <button class="btn btn-light"
+                        data-bs-dismiss="modal">
+                    ย้อนกลับ
+                </button>
+
+                <button class="btn btn-primary"
+                        onclick="submitForm()">
+                    ยืนยันแจ้งชำระ
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+    .upload-area {
+        border-color: #dee2e6;
+        cursor: pointer;
+        transition: all .3s;
+    }
+
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background: #f0f7ff;
+        }
+
+    .bg-primary {
+        background: linear-gradient(135deg,#0d6efd,#0049a8) !important;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn .5s;
+    }
+
+    .animate-zoom-in {
+        animation: zoomIn .3s;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes zoomIn {
+        from {
+            opacity: 0;
+            scale: .9;
+        }
+
+        to {
+            opacity: 1;
+            scale: 1;
+        }
+    }
+
+</style>
+
+@section Scripts {
+
+    <script>
+
+        function previewFile(){
+
+        const preview=document.getElementById('imgPreview');
+        const file=document.getElementById('slipInput').files[0];
+        const container=document.getElementById('previewContainer');
+        const dropArea=document.getElementById('dropArea');
+
+        const reader=new FileReader();
+
+        reader.onloadend=function(){
+        preview.src=reader.result;
+        container.classList.remove('d-none');
+        dropArea.classList.add('d-none');
+        }
+
+        if(file){
+        reader.readAsDataURL(file);
+        }
+
+        }
+
+        function clearPreview(e){
+
+        e.stopPropagation();
+
+        document.getElementById('slipInput').value="";
+        document.getElementById('previewContainer').classList.add('d-none');
+        document.getElementById('dropArea').classList.remove('d-none');
+
+        }
+
+        function showConfirmPayment(){
+
+        const amount=document.getElementById('amountInput').value;
+        const slip=document.getElementById('slipInput').files[0];
+
+        if(!amount || amount<=0){
+        alert("กรุณากรอกจำนวนเงิน");
+        return;
+        }
+
+        if(!slip){
+        alert("กรุณาอัปโหลดสลิป");
+        return;
+        }
+
+        document.getElementById('confirmAmountDisplay').innerText =
+        "฿"+parseFloat(amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+
+        new bootstrap.Modal(document.getElementById('confirmPaymentModal')).show();
+
+        }
+
+        function submitForm(){
+        document.getElementById('paymentForm').submit();
+        }
+
+    </script>
+
+}

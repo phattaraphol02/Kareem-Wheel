@@ -1,0 +1,411 @@
+@model List<CS66_WebApplication1.Models.Banner>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "จัดการแบนเนอร์หน้าแรก";
+    int activeCount = ViewBag.ActiveCount ?? 0;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --o: #FF9760;
+        --o-deep: #F97A38;
+        --o-light: #FFF2EB;
+        --line: #EAEAEA;
+        --muted: #7A7A7A;
+    }
+
+    body { background: #F9FAFB; font-family: 'Kanit', sans-serif; }
+
+    .page-header-rim {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--o-light) 100%);
+        padding: 30px 35px; border-radius: 16px; margin-bottom: 25px;
+        border: 1px solid var(--line); display: flex; align-items: center;
+        justify-content: space-between; flex-wrap: wrap; gap: 15px;
+    }
+
+    .header-icon {
+        width: 50px; height: 50px; background: var(--o); color: #fff;
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; box-shadow: 0 4px 15px rgba(255,151,96,0.3);
+    }
+
+    .panel {
+        background: #FFF; border: 1px solid var(--line); border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 25px;
+    }
+
+    .panel-head {
+        padding: 16px 22px; border-bottom: 1px solid var(--line);
+        font-weight: 600; display: flex; align-items: center; gap: 8px;
+    }
+
+    .panel-body { padding: 22px; }
+
+    .form-label-sm {
+        font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 6px;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--line); border-radius: 10px;
+        padding: 10px 14px; font-size: 0.9rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--o); box-shadow: 0 0 0 3px rgba(255,151,96,0.12);
+        }
+
+    .btn-save {
+        background: var(--o); color: #fff; border: none; border-radius: 10px;
+        padding: 11px 20px; font-weight: 600; width: 100%; transition: 0.2s;
+    }
+
+        .btn-save:hover { background: var(--o-deep); color: #fff; }
+
+    /* ── การ์ดแบนเนอร์ ── */
+    .banner-card {
+        display: flex; gap: 20px; padding: 20px;
+        border-bottom: 1px solid #F5F5F5; transition: 0.2s;
+    }
+
+        .banner-card:last-child { border-bottom: none; }
+        .banner-card:hover { background: #FCFBFA; }
+        .banner-card.off { opacity: 0.55; }
+
+    .banner-thumb {
+        width: 180px; height: 110px; object-fit: cover; border-radius: 12px;
+        border: 1px solid var(--line); flex-shrink: 0; background: #F4F4F4;
+    }
+
+    .banner-info { flex-grow: 1; min-width: 0; }
+
+    .banner-title { font-weight: 600; font-size: 1.05rem; margin-bottom: 2px; }
+    .banner-sub { font-size: 0.85rem; color: var(--muted); }
+
+    .pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 4px 12px; border-radius: 20px;
+        font-size: 0.74rem; font-weight: 600;
+    }
+
+    .pill-on { background: #E8F6EC; color: #2E9E4F; }
+    .pill-off { background: #F1F3F5; color: #6C757D; }
+    .pill-order { background: var(--o-light); color: var(--o-deep); }
+    .pill-sched { background: #E7F0FF; color: #1D68D6; }
+
+    .sched-box {
+        background: #FAFBFF;
+        border: 1px solid #DDE7F7;
+        border-radius: 12px;
+        padding: 14px;
+    }
+
+    .btn-mini {
+        border: 1px solid var(--line); background: #fff; color: var(--muted);
+        border-radius: 9px; padding: 7px 14px; font-size: 0.8rem;
+        font-weight: 600; font-family: 'Kanit', sans-serif; cursor: pointer;
+        transition: 0.18s; display: inline-flex; align-items: center; gap: 5px;
+    }
+
+        .btn-mini:hover { background: #F4F4F4; color: #333; }
+
+    .btn-on { border-color: #A5D6A7; color: #2E7D32; }
+    .btn-on:hover { background: #2E9E4F; color: #fff; border-color: #2E9E4F; }
+
+    .btn-off { border-color: #FFCC80; color: #E65100; }
+    .btn-off:hover { background: #E65100; color: #fff; border-color: #E65100; }
+
+    .btn-del { border-color: #FFCDD2; color: #C62828; }
+    .btn-del:hover { background: #C62828; color: #fff; border-color: #C62828; }
+
+    .empty { text-align: center; padding: 55px 20px; color: var(--muted); }
+
+    /* ── ตัวอย่างรูปก่อนอัปโหลด ── */
+    #preview {
+        display: none; width: 100%; height: 150px; object-fit: cover;
+        border-radius: 12px; border: 1px solid var(--line); margin-bottom: 14px;
+    }
+
+    .drop-hint {
+        border: 2px dashed #E0D9D3; border-radius: 12px; padding: 22px;
+        text-align: center; color: var(--muted); font-size: 0.85rem;
+        background: #FDFCFB; margin-bottom: 14px;
+    }
+
+    @@media (max-width: 768px) {
+        .banner-card { flex-direction: column; }
+        .banner-thumb { width: 100%; height: 160px; }
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <div class="page-header-rim">
+        <div class="d-flex align-items-center gap-3">
+            <div class="header-icon"><i class="bi bi-images"></i></div>
+            <div>
+                <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif;">จัดการ<span style="color:var(--o)">แบนเนอร์</span></h2>
+                <p class="text-muted mb-0" style="font-size:0.9rem;">รูปภาพที่แสดงบนหน้าแรกของเว็บไซต์</p>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="text-muted" style="font-size:0.8rem;">กำลังแสดงอยู่</div>
+            <div style="font-family:'Montserrat',sans-serif; font-weight:800; font-size:1.6rem; color:var(--o);">
+                @activeCount <span style="font-size:0.9rem; color:var(--muted);">/ @Model.Count</span>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success border-0 rounded-3"><i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger border-0 rounded-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="row g-4">
+
+        <!-- ══ ฟอร์มเพิ่มแบนเนอร์ ══ -->
+        <div class="col-lg-4">
+            <div class="panel">
+                <div class="panel-head"><i class="bi bi-plus-circle" style="color:var(--o);"></i> เพิ่มแบนเนอร์ใหม่</div>
+                <div class="panel-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <img id="preview" alt="ตัวอย่าง" />
+                        <div class="drop-hint" id="dropHint">
+                            <i class="bi bi-cloud-arrow-up" style="font-size:1.8rem; color:var(--o);"></i>
+                            <div class="mt-2">เลือกรูปภาพหน้าร้าน</div>
+                            <div style="font-size:0.75rem;">.jpg .png .webp — ไม่เกิน 5 MB</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="file" name="image" id="imgInput" class="form-control"
+                                   accept=".jpg,.jpeg,.png,.webp" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">หัวข้อ</label>
+                            <input type="text" name="Title" class="form-control" maxlength="150"
+                                   required placeholder="เช่น Premium Rim Shop" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">คำอธิบายใต้หัวข้อ</label>
+                            <input type="text" name="Subtitle" class="form-control" maxlength="200"
+                                   placeholder="เช่น เปิดทุกวัน 09:00–17:00 น." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm d-block">ลำดับการแสดง</label>
+                            <input type="number" name="SortOrder" class="form-control" value="0" min="0" />
+                            <div class="form-text small">เลขน้อยแสดงก่อน</div>
+                        </div>
+
+                        <div class="sched-box mb-3">
+                            <div class="form-label-sm mb-2">
+                                <i class="bi bi-calendar-range me-1"></i> ตั้งเวลาแสดง (ไม่บังคับ)
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-text small d-block mb-1">เริ่มแสดง</label>
+                                    <input type="date" name="StartDate" class="form-control" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-text small d-block mb-1">แสดงถึง</label>
+                                    <input type="date" name="EndDate" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-text small mt-2">
+                                เว้นว่างทั้งคู่ = แสดงตลอดไป
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="IsActive" value="true" id="actChk" checked />
+                            <label class="form-check-label" for="actChk" style="font-size:0.9rem;">เปิดใช้งานทันที</label>
+                        </div>
+
+                        <button type="submit" class="btn-save"><i class="bi bi-upload me-1"></i> อัปโหลดแบนเนอร์</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><i class="bi bi-lightbulb" style="color:var(--o);"></i> คำแนะนำ</div>
+                <div class="panel-body" style="font-size:0.86rem; color:var(--muted); line-height:1.9;">
+                    <div>• ขนาดรูปที่เหมาะสม <b>1200 × 750 px</b> ขึ้นไป</div>
+                    <div>• ถ้าเปิดใช้งานหลายรูป หน้าแรกจะ<b>สลับภาพอัตโนมัติทุก 3 วินาที</b></div>
+                    <div>• <b>ตั้งเวลาแสดง</b> ใช้ทำโปรโมชั่นตามเทศกาลได้ พอถึงวันหมดอายุจะซ่อนเอง</div>
+                    <div>• <b>ปิดใช้งาน</b> = ซ่อนชั่วคราว เปิดกลับได้ทุกเมื่อ</div>
+                    <div>• <b>ลบ</b> = ลบถาวรพร้อมไฟล์รูป กู้คืนไม่ได้</div>
+                    <div>• ถ้าไม่มีแบนเนอร์เปิดใช้งานเลย หน้าแรกจะใช้<b>รูปเริ่มต้น</b>ของระบบ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ รายการแบนเนอร์ ══ -->
+        <div class="col-lg-8">
+            <div class="panel">
+                <div class="panel-head">
+                    <i class="bi bi-card-image" style="color:var(--o);"></i> แบนเนอร์ทั้งหมด
+                    <span class="pill pill-order ms-1">@Model.Count รายการ</span>
+                </div>
+
+                @if (Model.Any())
+                {
+                    foreach (var b in Model)
+                    {
+                        <div class="banner-card @(b.IsLiveNow ? "" : "off")">
+                            <img src="/banners/@b.ImageFileName" class="banner-thumb" alt="@b.Title"
+                                 onerror="this.style.visibility='hidden'" />
+
+                            <div class="banner-info">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    @if (!b.IsActive)
+                                    {
+                                        <span class="pill pill-off"><i class="bi bi-eye-slash-fill"></i> ปิดใช้งาน</span>
+                                    }
+                                    else if (b.IsLiveNow)
+                                    {
+                                        <span class="pill pill-on"><i class="bi bi-eye-fill"></i> กำลังแสดง</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="pill pill-sched"><i class="bi bi-calendar-week"></i> ยังไม่แสดง</span>
+                                    }
+
+                                    <span class="pill pill-order">ลำดับ @b.SortOrder</span>
+
+                                    <span class="pill @(b.StartDate == null && b.EndDate == null ? "pill-off" : "pill-sched")">
+                                        <i class="bi bi-clock-history"></i> @b.ScheduleNote
+                                    </span>
+                                </div>
+
+                                <div class="banner-title">@b.Title</div>
+                                <div class="banner-sub">@(string.IsNullOrEmpty(b.Subtitle) ? "— ไม่มีคำอธิบาย —" : b.Subtitle)</div>
+                                <div class="text-muted mt-1" style="font-size:0.76rem;">
+                                    <i class="bi bi-clock me-1"></i>เพิ่มเมื่อ @b.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                </div>
+
+                                <div class="d-flex gap-2 mt-3 flex-wrap">
+                                    <form asp-action="ToggleActive" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@b.Banner_Id" />
+                                        <button type="submit" class="btn-mini @(b.IsActive ? "btn-off" : "btn-on")">
+                                            @if (b.IsActive)
+                                            {
+                                                <i class="bi bi-eye-slash"></i>
+                                                <span>ปิดใช้งาน</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-eye"></i>
+                                                <span>เปิดใช้งาน</span>
+                                            }
+                                        </button>
+                                    </form>
+
+                                    <button type="button" class="btn-mini" onclick="toggleEdit(@b.Banner_Id)">
+                                        <i class="bi bi-pencil"></i> แก้ไขข้อความ
+                                    </button>
+
+                                    <form asp-action="Delete" method="post"
+                                          onsubmit="return confirm('ลบแบนเนอร์ &quot;@b.Title&quot; ถาวรใช่หรือไม่?\n\nไฟล์รูปจะถูกลบด้วย กู้คืนไม่ได้');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@b.Banner_Id" />
+                                        <button type="submit" class="btn-mini btn-del"><i class="bi bi-trash"></i> ลบ</button>
+                                    </form>
+                                </div>
+
+                                <!-- ฟอร์มแก้ไขข้อความ (ซ่อนไว้) -->
+                                <div id="edit-@b.Banner_Id" style="display:none;" class="mt-3 pt-3 border-top">
+                                    <form asp-action="UpdateText" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@b.Banner_Id" />
+                                        <div class="row g-2">
+                                            <div class="col-md-5">
+                                                <label class="form-label-sm d-block">หัวข้อ</label>
+                                                <input type="text" name="title" class="form-control" value="@b.Title" maxlength="150" required />
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label-sm d-block">คำอธิบาย</label>
+                                                <input type="text" name="subtitle" class="form-control" value="@b.Subtitle" maxlength="200" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label-sm d-block">ลำดับ</label>
+                                                <input type="number" name="sortOrder" class="form-control" value="@b.SortOrder" min="0" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label-sm d-block">
+                                                    <i class="bi bi-calendar-event me-1"></i>เริ่มแสดงวันที่
+                                                </label>
+                                                <input type="date" name="startDate" class="form-control"
+                                                       value="@(b.StartDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label-sm d-block">
+                                                    <i class="bi bi-calendar-x me-1"></i>แสดงถึงวันที่
+                                                </label>
+                                                <input type="date" name="endDate" class="form-control"
+                                                       value="@(b.EndDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn-mini btn-on mt-2">
+                                            <i class="bi bi-check-lg"></i> บันทึก
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty">
+                        <i class="bi bi-image-alt" style="font-size:3.5rem; color:#EAEAEA;"></i>
+                        <h5 class="fw-bold mt-3 mb-2">ยังไม่มีแบนเนอร์</h5>
+                        <p class="mb-0 small">หน้าแรกกำลังใช้รูปเริ่มต้นของระบบอยู่<br />อัปโหลดรูปแรกได้จากฟอร์มด้านซ้าย</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // แสดงตัวอย่างรูปก่อนอัปโหลด
+        const input = document.getElementById('imgInput');
+        const preview = document.getElementById('preview');
+        const hint = document.getElementById('dropHint');
+
+        input.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) {
+                preview.style.display = 'none';
+                hint.style.display = 'block';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                hint.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // เปิด/ปิดฟอร์มแก้ไขข้อความ
+        function toggleEdit(id) {
+            const el = document.getElementById('edit-' + id);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+}

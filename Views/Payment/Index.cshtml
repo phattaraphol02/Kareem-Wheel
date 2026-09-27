@@ -1,0 +1,69 @@
+﻿@model List<CS66_WebApplication1.Models.Payment>
+
+@{
+    ViewData["Title"] = "Payment List";
+}
+
+<div class="container py-4">
+
+    <h2 class="mb-4">รายการแจ้งชำระเงิน</h2>
+
+    <table class="table table-bordered table-striped">
+
+        <thead class="table-dark">
+            <tr>
+                <th>Payment ID</th>
+                <th>Order ID</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Slip</th>
+                <th>Status</th>
+                <th width="200">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+
+                    <td>@item.Payment_Id</td>
+
+                    <td>@(item.Order?.OrderNumber ?? $"ORD{item.Order_Id:D4}")</td>
+
+                    <td>@item.Amount.ToString("N2")</td>
+
+                    <td>@item.PaidAt.ToString("dd/MM/yyyy HH:mm")</td>
+
+                    <td>
+
+                        @if (!string.IsNullOrEmpty(item.SlipFileName))
+                        {
+                            <a href="/slips/@item.SlipFileName" target="_blank">
+                                View Slip
+                            </a>
+                        }
+
+                    </td>
+
+                    <td>@item.Status</td>
+
+                    <td>
+
+                        <a asp-action="Details"
+                           asp-route-id="@item.Payment_Id"
+                           class="btn btn-primary btn-sm">
+                            Details
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

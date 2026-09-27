@@ -1,0 +1,288 @@
+﻿@model Customer
+
+@{
+    ViewData["Title"] = "Join Us - Kareem Member";
+}
+
+<style>
+    :root {
+        --lux-dark: #121212;
+        --lux-gold: #c5a059;
+        --lux-gold-light: #eaddc3;
+        --lux-soft: #fcfcfc;
+    }
+
+    body {
+        /* พื้นหลังหรูหราแบบ Gradient อ่อนๆ */
+        background: radial-gradient(circle at top right, #ffffff, #f2f2f2);
+        min-height: 100vh;
+    }
+
+    .create-container {
+        padding: 80px 0;
+    }
+
+    .create-card {
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 0; /* คงคอนเซปต์เหลี่ยมคมแบบ Luxury */
+        background: white;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.07);
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* แถบสีทองด้านบนเพื่อความหรู */
+        .create-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--lux-dark), var(--lux-gold), var(--lux-dark));
+        }
+
+    .brand-logo-area {
+        margin-bottom: 40px;
+    }
+
+    .brand-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 700;
+        color: var(--lux-dark);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+
+    .form-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--lux-dark);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 0;
+        padding: 14px 18px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        transition: all 0.4s ease;
+        font-size: 0.9rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--lux-gold);
+            box-shadow: none;
+            background: #fff;
+        }
+
+    .btn-lux-register {
+        background: var(--lux-dark);
+        color: var(--lux-gold);
+        border: 1px solid var(--lux-gold);
+        border-radius: 0;
+        padding: 15px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        transition: 0.4s;
+        font-size: 0.9rem;
+    }
+
+        .btn-lux-register:hover {
+            background: var(--lux-gold);
+            color: var(--lux-dark);
+            box-shadow: 0 10px 20px rgba(197, 160, 89, 0.2);
+        }
+
+    .btn-lux-back {
+        border-radius: 0;
+        padding: 15px;
+        font-weight: 600;
+        color: #888;
+        border: 1px solid #eee;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+        font-size: 0.8rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-lux-back:hover {
+            background: #f8f8f8;
+            color: var(--lux-dark);
+        }
+
+    .input-icon-group {
+        position: relative;
+    }
+
+        .input-icon-group i {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            color: var(--lux-gold);
+            opacity: 0.6;
+        }
+
+    .section-divider {
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        color: var(--lux-gold);
+        display: flex;
+        align-items: center;
+        margin: 30px 0 20px;
+    }
+
+        .section-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #eee;
+            margin-left: 15px;
+        }
+</style>
+
+<div class="container create-container d-flex align-items-center justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        <div class="card create-card animate__animated animate__fadeIn">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="text-center brand-logo-area">
+                    <h2 class="brand-title">Kareem Registry</h2>
+                    <p class="text-muted small text-uppercase" style="letter-spacing: 4px;">Join the elite experience</p>
+                </div>
+
+                <form asp-action="Create" method="post" class="mt-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="section-divider">Personal Credentials</div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Full Name / นามสกุล</label>
+                            <div class="input-icon-group">
+                                <input class="form-control" asp-for="Customer_Name" placeholder="NAME SURNAME" />
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <span asp-validation-for="Customer_Name" class="text-danger extra-small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Email Identification / อีเมล</label>
+                            <div class="input-icon-group">
+                                <input class="form-control" asp-for="Customer_Email" placeholder="IDENTITY@KAREEM.COM" />
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <span asp-validation-for="Customer_Email" class="text-danger extra-small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Secure Password / รหัสผ่าน</label>
+                            <div class="input-icon-group">
+                                <input class="form-control" asp-for="Password" type="password" placeholder="••••••••" />
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-5">
+                            <div class="section-divider">Logistics & Location</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Primary Phone / เบอร์โทรศัพท์</label>
+                            <div class="input-icon-group">
+                                <input class="form-control" asp-for="Phone" placeholder="08X XXX XXXX" />
+                                <i class="bi bi-phone"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Postal Code / รหัสไปรษณีย์</label>
+                            <input class="form-control" asp-for="PostalCode" placeholder="10XXX" />
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Shipping Address / ที่อยู่จัดส่ง</label>
+                            <textarea class="form-control" asp-for="Address" rows="2" placeholder="STREET, BUILDING, HOUSE NO."></textarea>
+                            <span asp-validation-for="Address" class="text-danger extra-small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Province / จังหวัด</label>
+                            <select class="form-select" asp-for="Province_Id" asp-items="ViewBag.ProvinceList" id="Province_Id">
+                                <option value="">-- SELECT PROVINCE --</option>
+                            </select>
+                            <span asp-validation-for="Province_Id" class="text-danger extra-small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">District / อำเภอ</label>
+                            <select class="form-select" asp-for="Amphur_Id" id="Amphur_Id">
+                                <option value="">-- SELECT DISTRICT --</option>
+                            </select>
+                            <span asp-validation-for="Amphur_Id" class="text-danger extra-small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-5">
+                        <div class="col-md-8 d-grid">
+                            <button type="submit" class="btn btn-lux-register shadow-sm">
+                                Complete Registration
+                            </button>
+                        </div>
+                        <div class="col-md-4 d-grid">
+                            <a asp-action="Index" class="btn btn-lux-back">
+                                Back to Portal
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <p class="small text-muted text-uppercase" style="letter-spacing: 2px;">
+                Already a member? <a href="#" class="text-decoration-none fw-bold" style="color: var(--lux-gold);">Sign In Here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const provinceSelect = document.getElementById("Province_Id");
+        const amphurSelect   = document.getElementById("Amphur_Id");
+
+        provinceSelect.addEventListener("change", async function () {
+            const provinceId = this.value;
+            amphurSelect.innerHTML = `<option value="">-- LOADING... --</option>`;
+
+            if (!provinceId) {
+                amphurSelect.innerHTML = `<option value="">-- SELECT DISTRICT --</option>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`/Customer/GetAmphurs?provinceId=${encodeURIComponent(provinceId)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+
+                amphurSelect.innerHTML = `<option value="">-- SELECT DISTRICT --</option>`;
+                for (const item of data) {
+                    const opt = document.createElement("option");
+                    opt.value = item.amphur_Id;
+                    opt.textContent = item.amphur_Name.toUpperCase();
+                    amphurSelect.appendChild(opt);
+                }
+            } catch (err) {
+                console.error("Error loading amphurs:", err);
+            }
+        });
+    </script>
+}

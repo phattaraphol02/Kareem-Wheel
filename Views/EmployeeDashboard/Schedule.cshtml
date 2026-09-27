@@ -1,0 +1,538 @@
+@model IEnumerable<CS66_WebApplication1.Models.Appointment>
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@using Microsoft.AspNetCore.Html
+
+@{
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+    ViewData["Title"] = "ตารางงานของฉัน";
+    var empName = ViewBag.EmployeeName as string ?? "พนักงาน";
+
+    var mechanics = ViewBag.Mechanics as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var today = DateTime.Today;
+
+    string GetCategory(string? status)
+    {
+        if (status == "กำลังทำ" || status == "กำลังดำเนินการซ่อม") return "doing";
+        if (status == "เสร็จแล้ว" || status == "เสร็จสิ้น") return "done";
+        if (status == "ยกเลิกแล้ว") return "cancel";
+        return "todo";
+    }
+
+    var items = (Model ?? Enumerable.Empty<CS66_WebApplication1.Models.Appointment>()).ToList();
+    var todoList = items.Where(a => GetCategory(a.Status) == "todo").ToList();
+    var doingList = items.Where(a => GetCategory(a.Status) == "doing").ToList();
+    var doneList = items.Where(a => GetCategory(a.Status) == "done").ToList();
+    var cancelList = items.Where(a => GetCategory(a.Status) == "cancel").ToList();
+    var todayCount = items.Count(a => a.Appointment_Date.Date == today);
+
+    async Task<IHtmlContent> RenderCard(CS66_WebApplication1.Models.Appointment item, string category)
+    {
+        var vd = new ViewDataDictionary(ViewData)
+        {
+            ["Mechanics"] = mechanics,
+            ["Today"] = today,
+            ["Category"] = category
+        };
+        return await Html.PartialAsync("_ScheduleCard", item, vd);
+    }
+}
+
+@section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <style>
+        :root {
+            --rim-orange: #FF9760;
+            --rim-orange-deep: #F97A38;
+            --rim-orange-light: #FFF2EB;
+            --rim-orange-soft: #FFE4D3;
+            --rim-bg-light: #FBFAF9;
+            --rim-card: #FFFFFF;
+            --rim-border: #EFEAE6;
+            --text-main: #26221F;
+            --text-muted: #9A9086;
+        }
+
+        body {
+            background-color: var(--rim-bg-light);
+            font-family: 'Kanit', sans-serif;
+            color: var(--text-main);
+        }
+
+        /* ── Header ── */
+        .page-header {
+            position: relative;
+            background: linear-gradient(120deg, #FFFFFF 0%, var(--rim-orange-light) 120%);
+            padding: 34px 42px;
+            border-radius: 20px;
+            border: 1px solid var(--rim-border);
+            margin-bottom: 30px;
+            box-shadow: 0 12px 34px rgba(249, 122, 56, 0.08);
+            overflow: hidden;
+        }
+
+        .header-pattern {
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,151,96,0.18) 0%, rgba(255,151,96,0) 70%);
+            border-radius: 50%;
+        }
+
+        .page-header h3 {
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        /* ── Summary Cards ── */
+        .summary-card {
+            background: var(--rim-card);
+            border-radius: 18px;
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 10px 28px rgba(38, 34, 31, 0.04);
+            transition: all 0.25s ease;
+            height: 100%;
+            border: 1px solid var(--rim-border);
+        }
+
+            .summary-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 16px 32px rgba(249, 122, 56, 0.14);
+                border-color: var(--rim-orange-soft);
+            }
+
+        .summary-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+            .summary-icon.i-today { background: var(--rim-orange-light); color: var(--rim-orange-deep); }
+            .summary-icon.i-doing { background: #E9F2FC; color: #1976D2; }
+            .summary-icon.i-done { background: #E9F7EC; color: #2E7D32; }
+            .summary-icon.i-cancel { background: #FDECEC; color: #C23636; }
+
+        .summary-card .lbl {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .summary-card h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+        }
+
+        /* ── Toolbar ── */
+        .lux-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(38, 34, 31, 0.04);
+            padding: 22px 26px;
+            margin-bottom: 28px;
+            border: 1px solid var(--rim-border);
+        }
+
+            .lux-card h5 {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 700;
+            }
+
+        .btn-refresh {
+            background: var(--rim-orange-light);
+            color: var(--rim-orange-deep);
+            font-weight: 600;
+            border: 1px solid var(--rim-orange-soft);
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+            .btn-refresh:hover { background: var(--rim-orange); color: white; }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+        }
+
+            .search-wrap i {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-muted);
+            }
+
+        .input-modern, .form-select-modern {
+            border-radius: 12px;
+            border: 1px solid var(--rim-border);
+            background-color: #FBFAF9;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text-main);
+            box-shadow: none;
+            padding: 10px 14px;
+            width: 100%;
+        }
+
+        .search-wrap .input-modern { padding-left: 42px; }
+
+        .input-modern:focus, .form-select-modern:focus {
+            border-color: var(--rim-orange);
+            box-shadow: 0 0 0 3px rgba(255, 151, 96, 0.18);
+            outline: none;
+        }
+
+        .form-select-modern { min-width: 200px; }
+
+        /* ── Kanban Board ── */
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scroll-snap-type: x proximity;
+        }
+
+        .kanban-col {
+            flex: 1 1 280px;
+            min-width: 280px;
+            max-width: 340px;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kanban-col-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+            border: 1px solid transparent;
+        }
+
+            .kanban-col-header .col-count {
+                background: rgba(255,255,255,0.6);
+                border-radius: 20px;
+                padding: 2px 10px;
+                font-size: 0.78rem;
+                font-weight: 700;
+            }
+
+        .header-todo { background: #FFF3E0; color: #B4600A; border-color: #FFDCA8; }
+        .header-doing { background: #EAF3FC; color: #1B5FA8; border-color: #C6DEF5; }
+        .header-done { background: #EAF7EC; color: #1F7A32; border-color: #C4E9C9; }
+        .header-cancel { background: #FDEEEE; color: #C23636; border-color: #F6CFCF; }
+
+        .kanban-col-body {
+            background: #FBFAF9;
+            border: 1px dashed var(--rim-border);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 160px;
+            max-height: 62vh;
+            overflow-y: auto;
+        }
+
+        .kanban-card {
+            background: #FFFFFF;
+            border: 1px solid var(--rim-border);
+            border-left: 4px solid #D8D2CC;
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 10px rgba(38, 34, 31, 0.03);
+            transition: all 0.2s ease;
+        }
+
+            .kanban-card:hover {
+                box-shadow: 0 10px 22px rgba(249, 122, 56, 0.12);
+                transform: translateY(-2px);
+            }
+
+        .card-todo { border-left-color: #F5A623; }
+        .card-doing { border-left-color: #1B5FA8; }
+        .card-done { border-left-color: #1F7A32; }
+        .card-cancel { border-left-color: #C23636; opacity: 0.75; }
+
+        .card-today {
+            border-left-color: var(--rim-orange) !important;
+            background: linear-gradient(135deg, rgba(255,151,96,0.06) 0%, #FFFFFF 60%);
+        }
+
+        .badge-today {
+            font-size: 0.62rem;
+            background: var(--rim-orange);
+            color: white;
+            border-radius: 20px;
+            padding: 3px 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 3px 8px rgba(255, 151, 96, 0.35);
+        }
+
+        .kc-time {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .kc-service {
+            font-weight: 700;
+            font-size: 0.98rem;
+            margin-bottom: 4px;
+        }
+
+        .kc-customer {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .kc-footer { display: flex; justify-content: flex-end; }
+
+        .employee-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--rim-orange-light);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--rim-orange-deep);
+            border: 1px solid var(--rim-orange-soft);
+        }
+
+            .employee-badge.unassigned {
+                background: #FDF3E1;
+                color: #B4790A;
+                border-color: #F5DFA8;
+            }
+
+        .kanban-empty {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            padding: 28px 10px;
+            gap: 6px;
+        }
+
+            .kanban-empty i { font-size: 1.6rem; color: #DDD5CC; }
+
+        @@media (max-width: 767px) {
+            .kanban-col { min-width: 88%; }
+        }
+    </style>
+}
+
+<div class="container-fluid px-lg-4 py-4 animate__animated animate__fadeIn">
+
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="header-pattern"></div>
+        <div>
+            <h6 class="fw-bold mb-1 text-uppercase" style="color: var(--rim-orange-deep); letter-spacing: 1px;">@empName</h6>
+            <h3 class="fw-bold mb-0">ตารางงานของฉัน <i class="bi bi-person-workspace ms-1" style="color: var(--rim-orange);"></i></h3>
+            <p class="mb-0 mt-2 text-muted">ประวัติงานทั้งหมดที่เคยรับผิดชอบ แสดงเป็นกระดานบอร์ดตามสถานะ</p>
+        </div>
+        <div class="d-none d-md-block text-end">
+            <h4 class="fw-bold mb-0">@DateTime.Now.ToString("dd MMM yyyy")</h4>
+            <div class="text-muted small mt-1"><i class="bi bi-clock-history"></i> อัปเดต: @DateTime.Now.ToString("HH:mm") น.</div>
+        </div>
+    </div>
+
+    <!-- 📊 Summary Widgets -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon i-today"><i class="bi bi-calendar2-day-fill"></i></div>
+                <div>
+                    <div class="lbl">คิวงานวันนี้</div>
+                    <h2 class="mb-0">@todayCount</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon i-doing"><i class="bi bi-gear-fill"></i></div>
+                <div>
+                    <div class="lbl">กำลังดำเนินการ</div>
+                    <h2 class="mb-0">@doingList.Count</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon i-done"><i class="bi bi-check-circle-fill"></i></div>
+                <div>
+                    <div class="lbl">เสร็จสิ้นแล้ว</div>
+                    <h2 class="mb-0">@doneList.Count</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon i-cancel"><i class="bi bi-x-circle-fill"></i></div>
+                <div>
+                    <div class="lbl">ยกเลิกแล้ว</div>
+                    <h2 class="mb-0">@cancelList.Count</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔎 Toolbar -->
+    <div class="lux-card animate__animated animate__fadeInUp" style="animation-delay: 0.05s;">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" class="input-modern" placeholder="ค้นหาบริการ หรือชื่อลูกค้า...">
+            </div>
+            <button class="btn btn-sm btn-refresh rounded-pill px-3 ms-md-auto" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล
+            </button>
+        </div>
+    </div>
+
+    <!-- 📋 กระดานตารางงานรวม (Kanban Board) -->
+    <div class="lux-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h5 class="mb-0">
+                <i class="bi bi-kanban me-2" style="color: var(--rim-orange-deep);"></i> งานทั้งหมดของฉัน
+            </h5>
+            <span class="text-muted small" id="resultCount">แสดง @items.Count รายการ</span>
+        </div>
+
+        @if (items.Any())
+        {
+            <div class="kanban-board">
+                <div class="kanban-col" data-status="todo">
+                    <div class="kanban-col-header header-todo">
+                        <span><i class="bi bi-circle me-1"></i> รอดำเนินการ</span>
+                        <span class="col-count">@todoList.Count</span>
+                    </div>
+                    <div class="kanban-col-body">
+                        @foreach (var item in todoList)
+                        {
+                            @await RenderCard(item, "todo")
+                        }
+                        <div class="kanban-empty"><i class="bi bi-inbox"></i> ไม่มีคิวในสถานะนี้</div>
+                    </div>
+                </div>
+
+                <div class="kanban-col" data-status="doing">
+                    <div class="kanban-col-header header-doing">
+                        <span><i class="bi bi-arrow-repeat me-1"></i> กำลังทำ</span>
+                        <span class="col-count">@doingList.Count</span>
+                    </div>
+                    <div class="kanban-col-body">
+                        @foreach (var item in doingList)
+                        {
+                            @await RenderCard(item, "doing")
+                        }
+                        <div class="kanban-empty"><i class="bi bi-inbox"></i> ไม่มีคิวในสถานะนี้</div>
+                    </div>
+                </div>
+
+                <div class="kanban-col" data-status="done">
+                    <div class="kanban-col-header header-done">
+                        <span><i class="bi bi-check-circle-fill me-1"></i> เสร็จสิ้นแล้ว</span>
+                        <span class="col-count">@doneList.Count</span>
+                    </div>
+                    <div class="kanban-col-body">
+                        @foreach (var item in doneList)
+                        {
+                            @await RenderCard(item, "done")
+                        }
+                        <div class="kanban-empty"><i class="bi bi-inbox"></i> ไม่มีคิวในสถานะนี้</div>
+                    </div>
+                </div>
+
+                <div class="kanban-col" data-status="cancel">
+                    <div class="kanban-col-header header-cancel">
+                        <span><i class="bi bi-x-circle-fill me-1"></i> ยกเลิกแล้ว</span>
+                        <span class="col-count">@cancelList.Count</span>
+                    </div>
+                    <div class="kanban-col-body">
+                        @foreach (var item in cancelList)
+                        {
+                            @await RenderCard(item, "cancel")
+                        }
+                        <div class="kanban-empty"><i class="bi bi-inbox"></i> ไม่มีคิวในสถานะนี้</div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div style="width: 84px; height: 84px; border-radius: 50%; background: var(--rim-orange-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px;">
+                    <i class="bi bi-calendar2-x" style="font-size: 2.2rem; color: var(--rim-orange);"></i>
+                </div>
+                <h5 class="fw-bold">ยังไม่มีรายการคิวงานในระบบช่วงนี้</h5>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        (function () {
+            const searchInput = document.getElementById('searchInput');
+            const resultCount = document.getElementById('resultCount');
+            const cards = Array.from(document.querySelectorAll('.kanban-card'));
+            const columns = Array.from(document.querySelectorAll('.kanban-col'));
+
+            function applyFilters() {
+                const q = searchInput.value.trim().toLowerCase();
+                let visibleTotal = 0;
+
+                cards.forEach(function (card) {
+                    const show = !q || card.dataset.search.includes(q);
+                    card.style.display = show ? '' : 'none';
+                    if (show) visibleTotal++;
+                });
+
+                columns.forEach(function (col) {
+                    const body = col.querySelector('.kanban-col-body');
+                    const emptyEl = col.querySelector('.kanban-empty');
+                    const visibleInCol = Array.from(body.querySelectorAll('.kanban-card')).filter(c => c.style.display !== 'none').length;
+                    emptyEl.style.display = visibleInCol === 0 ? 'flex' : 'none';
+                    col.querySelector('.col-count').textContent = visibleInCol;
+                });
+
+                resultCount.textContent = 'แสดง ' + visibleTotal + ' รายการ';
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+        })();
+    </script>
+}

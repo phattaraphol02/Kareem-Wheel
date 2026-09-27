@@ -1,0 +1,253 @@
+﻿@{
+    Layout = null;
+}
+@using Microsoft.AspNetCore.Http
+@{
+    // ดึงชื่อผู้ใช้มาเก็บไว้ในตัวแปร และดึงตัวอักษรตัวแรกมาทำเป็น Avatar
+    var customerName = Context.Session.GetString("Customer_Name") ?? "Admin";
+    var avatarInitial = !string.IsNullOrEmpty(customerName) ? customerName.Substring(0, 1).ToUpper() : "A";
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Kareem Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+            :root {
+                --rim-orange: #FF9760;
+                --rim-orange-hover: #F37C3B;
+                --rim-orange-light: #FFF2EB;
+                --rim-bg-light: #F9FAFB;
+                --rim-border: #EAEAEA;
+                --rim-card: #FFFFFF;
+                --rim-text-main: #2D2D2D;
+                --rim-text-muted: #8A8A8A;
+            }
+
+            body {
+                background-color: var(--rim-bg-light);
+                font-family: 'Kanit', sans-serif;
+            }
+
+            .admin-navbar {
+                background: #fff;
+                height: 70px;
+                border-bottom: 1px solid var(--rim-border);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 30px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .admin-logo {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 900;
+                font-size: 1.5rem;
+                color: #2D2D2D;
+                text-decoration: none;
+            }
+
+                .admin-logo span {
+                    color: var(--rim-orange);
+                }
+
+            .main-wrapper {
+                display: flex;
+                min-height: calc(100vh - 70px);
+            }
+
+            .sidebar-wrapper {
+                width: 280px;
+                background: #fff;
+                border-right: 1px solid var(--rim-border);
+                flex-shrink: 0;
+            }
+
+            .sidebar-menu {
+                list-style: none;
+                margin: 0;
+                padding: 12px 0 24px 0;
+            }
+
+                .sidebar-menu li {
+                    list-style: none;
+                }
+
+            .sidebar-link {
+                display: flex;
+                align-items: center;
+                padding: 12px 20px;
+                margin: 4px 16px;
+                color: #2D2D2D;
+                text-decoration: none;
+                border-radius: 25px;
+                transition: 0.2s;
+            }
+
+                .sidebar-link.active {
+                    background-color: var(--rim-orange);
+                    color: #fff !important;
+                }
+
+                .sidebar-link:hover:not(.active) {
+                    background-color: var(--rim-orange-light);
+                    color: var(--rim-orange);
+                }
+
+            .content-wrapper {
+                flex-grow: 1;
+                padding: 2rem;
+                overflow-x: hidden;
+            }
+
+            /* --- 💡 ปุ่มโปรไฟล์แบบ Pill (เหมือนในรูป) --- */
+            .profile-btn-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 12px;
+                padding: 6px 18px 6px 6px; /* บีบซ้ายให้ชิดวงกลม ขยายขวาให้สวยงาม */
+                border-radius: 50px;
+                border: 1px solid var(--rim-border);
+                background: #FFFFFF;
+                text-decoration: none;
+                transition: all 0.25s ease;
+                color: var(--rim-text-main);
+            }
+
+                .profile-btn-pill:hover {
+                    border-color: var(--rim-orange);
+                    background: var(--rim-orange-light);
+                    color: var(--rim-orange);
+                }
+
+                /* ปิดลูกศร Dropdown ดั้งเดิมของ Bootstrap */
+                .profile-btn-pill::after {
+                    display: none;
+                }
+
+            /* --- 💡 วงกลม Avatar สีส้ม --- */
+            .profile-avatar-circle {
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                background: var(--rim-orange);
+                color: #FFFFFF;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: 'Kanit', sans-serif;
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            /* --- ปรับแต่ง Dropdown เมนูใหม่ให้สวยงาม --- */
+            .admin-user-menu {
+                border-radius: 16px !important;
+                border: 1px solid var(--rim-border);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+                padding: 10px !important;
+                min-width: 240px;
+                margin-top: 15px !important;
+            }
+
+                .admin-user-menu .dropdown-item {
+                    border-radius: 10px !important;
+                    padding: 12px 15px !important;
+                    transition: all 0.2s ease !important;
+                }
+
+                    .admin-user-menu .dropdown-item:hover {
+                        background-color: var(--rim-orange-light) !important;
+                        color: var(--rim-orange) !important;
+                    }
+    </style>
+
+    @if (IsSectionDefined("Styles"))
+    {
+        @RenderSection("Styles", required: false)
+    }
+</head>
+<body>
+    <header class="admin-navbar">
+        <a asp-controller="AdminDashboard" asp-action="Index" class="admin-logo">KAREEM <span>WHEEL</span></a>
+
+        <div class="d-flex align-items-center gap-4">
+
+            <!-- (ตัวเลือก) ถ้าอยากมีไอคอนตะกร้าในหน้าแอดมินด้วย เปิดคอมเมนต์บรรทัดล่างนี้ได้เลยครับ -->
+            <!-- <a href="#" class="text-dark fs-4"><i class="bi bi-cart"></i></a> -->
+            <!-- Dropdown โปรไฟล์แบบใหม่ -->
+            <div class="dropdown">
+                <a href="#" class="profile-btn-pill fw-bold dropdown-toggle" id="adminUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="profile-avatar-circle">@avatarInitial</span>
+                    <span>@customerName</span>
+                    <i class="bi bi-chevron-down ms-1" style="font-size: 0.8rem; color: #8A8A8A;"></i>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end admin-user-menu" aria-labelledby="adminUserDropdown">
+                    <li>
+                        <a asp-controller="Customer" asp-action="Profile" class="dropdown-item d-flex align-items-center">
+                            <div class="me-3 shadow-sm" style="width:38px; height:38px; background:var(--rim-orange-light); color:var(--rim-orange); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" style="font-size: 0.95rem; color: var(--rim-text-main);">ข้อมูลส่วนตัว</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">จัดการโปรไฟล์ของคุณ</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-2"></li>
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout" class="dropdown-item text-danger d-flex align-items-center fw-bold">
+                            <i class="bi bi-box-arrow-right me-3 fs-5"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="sidebar-wrapper">
+            <div class="p-4 border-bottom d-flex align-items-center">
+                <div class="me-3" style="width:45px; height:45px; background:var(--rim-orange); color:white; border-radius:12px; display:flex; align-items:center; justify-content:center;"><i class="bi bi-person-badge-fill"></i></div>
+                <div><h6 class="m-0 fw-bold">เจ้าของร้าน</h6><small class="text-muted">ระบบจัดการ</small></div>
+            </div>
+            <ul class="sidebar-menu flex-grow-1">
+                <li><a asp-controller="AdminDashboard" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminDashboard" ? "active" : "")"><i class="bi bi-pie-chart-fill me-3"></i> ภาพรวม</a></li>
+                <li><a asp-controller="AdminUsers" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminUsers" ? "active" : "")"><i class="bi bi-people-fill me-3"></i> จัดการผู้ใช้</a></li>
+                <li><a asp-controller="Brand" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Brand" ? "active" : "")"><i class="bi bi-diagram-3-fill me-3"></i> จัดการแบรนด์สินค้า</a></li>
+                <li><a asp-controller="AdminCategories" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminCategories" ? "active" : "")"><i class="bi bi-tags-fill me-3"></i> จัดการประเภทสินค้า</a></li>
+                <li><a asp-controller="AdminProducts" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminProducts" ? "active" : "")"><i class="bi bi-box-seam-fill me-3"></i> จัดการสินค้า</a></li>
+                <li><a asp-controller="AdminBanners" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminBanners" ? "active" : "")"><i class="bi bi-images me-3"></i> แบนเนอร์หน้าแรก</a></li>
+                <li><a asp-controller="AdminServices" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminServices" ? "active" : "")"><i class="bi bi-tools me-3"></i> จัดการบริการ</a></li>
+                <li><a asp-controller="AdminSpareParts" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminSpareParts" ? "active" : "")"><i class="bi bi-gear-fill me-3"></i> จัดการอะไหล่</a></li>
+                <li><a asp-controller="WalkIn" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "WalkIn" ? "active" : "")"><i class="bi bi-cart-fill me-3"></i> สั่งซื้อที่ร้าน</a></li>
+                <li><a asp-controller="Order" asp-action="AdminOrderHistory" class="sidebar-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "AdminOrderHistory" || ViewContext.RouteData.Values["Action"]?.ToString() == "VerifyPayments" ? "active" : "")"><i class="bi bi-receipt me-3"></i> จัดการคำสั่งซื้อ</a></li>
+                <li><a asp-controller="AdminProcurement" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminProcurement" ? "active" : "")"><i class="bi bi-bag-plus-fill me-3"></i> สั่งซื้อสินค้าเข้าร้าน</a></li>
+                <li><a asp-controller="AdminInventory" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminInventory" ? "active" : "")"><i class="bi bi-clipboard-data-fill me-3"></i> คลังสินค้า</a></li>
+                <li><a asp-controller="AdminAppointment" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminAppointment" ? "active" : "")"><i class="bi bi-calendar-check-fill me-3"></i> จัดการนัดหมาย</a></li>
+                <li><a asp-controller="AdminReports" asp-action="Index" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminReports" ? "active" : "")"><i class="bi bi-bar-chart-line-fill me-3"></i> รายงาน</a></li>
+            </ul>
+        </div>
+
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <partial name="_Alerts" />
+</body>
+</html>

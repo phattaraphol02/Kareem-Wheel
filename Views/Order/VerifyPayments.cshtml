@@ -1,0 +1,156 @@
+﻿@model List<CS66_WebApplication1.Models.Order>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* สไตล์เพิ่มเติมเฉพาะหน้านี้เพื่อให้เข้ากับธีม Kareem Wheel */
+    .btn-theme {
+        background-color: #FF9760;
+        border-color: #FF9760;
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+        .btn-theme:hover {
+            background-color: #E58856;
+            border-color: #E58856;
+            color: #ffffff;
+        }
+
+    .btn-outline-theme {
+        color: #1E1E1E;
+        border-color: #EAEAEA;
+        font-weight: 700;
+        background-color: #ffffff;
+    }
+
+        .btn-outline-theme:hover {
+            background-color: #FFF2EB;
+            border-color: #FF9760;
+            color: #FF9760;
+        }
+
+    .table-custom th {
+        background-color: #F9FAFB;
+        color: #1E1E1E;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        border-bottom: 2px solid #EAEAEA;
+        padding: 15px;
+    }
+
+    .table-custom td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .card-custom {
+        background: #FFFFFF;
+        border: 1px solid #EAEAEA;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary-light d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 50px; height: 50px; background-color: #FFF2EB;">
+            <i class="bi bi-credit-card-2-back fs-4" style="color: #FF9760;"></i>
+        </div>
+        <h2 class="fw-900 mb-0" style="color: #1E1E1E;">รายการแจ้งชำระเงินที่รอตรวจสอบ</h2>
+    </div>
+   
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card-custom overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>รหัสคำสั่งซื้อ</th>
+                            <th>ชื่อลูกค้า</th>
+                            <th>ยอดเงินที่ชำระ</th>
+                            <th>วันที่และเวลาที่แจ้ง</th>
+                            <th>สถานะ</th>
+                            <th class="text-center">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong style="color: #FF9760;">@(item.OrderNumber ?? $"ORD{item.Order_Id:D4}")</strong></td>
+                                <td class="fw-bold text-dark">@item.Customer?.Customer_Name</td>
+                                <td>฿@item.GrandTotal.ToString("N2")</td>
+                                <td class="text-secondary">@item.PaidAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <span class="badge rounded-pill" style="background-color: #FFF2EB; color: #FF9760; font-weight: 700; border: 1px solid #FF9760;">
+                                        <i class="bi bi-hourglass-split me-1"></i> รอการตรวจสอบ
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Details" asp-route-id="@item.Order_Id" class="btn btn-outline-theme btn-sm px-3 rounded-pill">
+                                            <i class="bi bi-eye"></i> รายละเอียด
+                                        </a>
+                                        <button type="button" class="btn btn-theme btn-sm px-3 rounded-pill" onclick="openTrackingModal(@item.Order_Id)">
+                                            <i class="bi bi-box-seam"></i> ยืนยัน/ส่งพัสดุ
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card-custom py-5 text-center mt-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background-color: #F9FAFB;">
+                <i class="bi bi-check2-circle" style="font-size: 2.5rem; color: #d1d5db;"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-2">ไม่มีรายการรอตรวจสอบ</h4>
+            <p class="text-secondary mb-0">ในขณะนี้ยังไม่มีรายการแจ้งชำระเงินที่รอการตรวจสอบจากลูกค้า</p>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="trackingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form asp-action="ConfirmPayment" method="post" class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-check-circle me-2" style="color: #4CAF50;"></i> ยืนยันการชำระเงิน
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <input type="hidden" name="orderId" id="modalOrderId" />
+                <p class="text-dark mb-3">ตรวจสอบสลิปการชำระเงินเรียบร้อยแล้วหรือไม่?</p>
+                <div class="alert alert-warning mb-0" style="background-color: #FFF2EB; border-color: #FF9760; color: #E58856; border-radius: 10px; font-size: 0.9rem;">
+                    <i class="bi bi-info-circle-fill me-1"></i> กดยืนยันแล้วสถานะจะเปลี่ยนเป็น "เตรียมสินค้า" สามารถเพิ่มเลขพัสดุทีหลังได้ที่หน้ารายละเอียดออเดอร์
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-theme rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="submit" class="btn rounded-pill px-4 fw-bold" style="background: #4CAF50; color: white; border: none;">ยืนยันสลิป</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openTrackingModal(orderId) {
+            document.getElementById('modalOrderId').value = orderId;
+            var myModal = new bootstrap.Modal(document.getElementById('trackingModal'));
+            myModal.show();
+        }
+    </script>
+}

@@ -1,0 +1,148 @@
+﻿@model IEnumerable<CS66_WebApplication1.Models.SparePart>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int threshold = ViewBag.LowStockThreshold ?? 5;
+    int outOfStock = ViewBag.OutOfStock ?? 0;
+    int lowStock = ViewBag.LowStock ?? 0;
+    decimal totalValue = ViewBag.TotalValue ?? 0m;
+
+    // เกณฑ์สีของสต็อก ใช้ชุดเดียวกับหน้าเบิกอะไหล่ของพนักงาน
+    Func<int, string> stockBadge = q =>
+        q <= 0 ? "bg-danger" : q <= threshold ? "bg-warning text-dark" : "bg-success";
+
+    Func<int, string> stockLabel = q => q <= 0 ? "หมด" : q.ToString();
+}
+
+<div class="container-fluid px-lg-5 py-4">
+
+    @* แจ้งเตือนของใกล้หมด ให้เจ้าของร้านเห็นก่อนที่ช่างจะเบิกไม่ได้ *@
+    @if (outOfStock > 0 || lowStock > 0)
+    {
+        <div class="alert d-flex align-items-center gap-3 border-0 mb-4"
+             style="background:#FFF4E5; border-left:5px solid #FF9760 !important; border-radius:12px;">
+            <i class="bi bi-exclamation-triangle-fill" style="font-size:1.5rem; color:#E65100;"></i>
+            <div style="font-size:0.92rem;">
+                @if (outOfStock > 0)
+                {
+                    <span><b class="text-danger">@outOfStock รายการหมดสต็อก</b> — ช่างเบิกไม่ได้</span>
+                }
+                @if (outOfStock > 0 && lowStock > 0)
+                {
+                    <span class="mx-1">·</span>
+                }
+                @if (lowStock > 0)
+                {
+                    <span><b style="color:#E65100;">@lowStock รายการใกล้หมด</b> (เหลือ @threshold ชิ้นหรือน้อยกว่า)</span>
+                }
+            </div>
+        </div>
+    }
+    <div class="brand-header shadow-sm" style="background: linear-gradient(135deg, #FFFFFF 0%, #FFF2EB 100%); padding: 35px 40px; border-left: 6px solid #FF9760; border-radius: 12px; margin-bottom: 30px; border: 1px solid #EAEAEA;">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <p class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 2px;">คลังสินค้าและอะไหล่</p>
+                <h2 class="fw-bold mb-0">ระบบจัดการ<span style="color: #FF9760;">ข้อมูลอะไหล่</span></h2>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <a class="btn px-4 py-2 me-2" asp-action="Requisitions" style="border: 1px solid #FF9760; color: #FF9760; background: transparent; border-radius: 30px;">
+                    <i class="bi bi-box-arrow-up me-1"></i> ประวัติการเบิก
+                </a>
+                <a class="btn btn-rim-orange px-4 py-2" asp-action="Create" style="background: #FF9760; color: white; border-radius: 30px;">
+                    <i class="bi bi-plus-lg me-1"></i> เพิ่มอะไหล่ใหม่
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card lux-card shadow-sm" style="border: 1px solid #EAEAEA; border-radius: 12px; background: #FFFFFF; overflow: hidden;">
+        <div class="card-header bg-white py-4 px-4 border-bottom-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 fw-semibold" style="font-size: 1.05rem;">ทำเนียบรายการอะไหล่ทั้งหมด</h5>
+            <div class="text-end">
+                <span class="text-muted" style="font-size:0.78rem;">มูลค่าสต็อกรวม</span>
+                <span class="fw-bold ms-2" style="color:#FF9760; font-family:'Montserrat',sans-serif;">
+                    ฿@totalValue.ToString("N2")
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background: #FAFAFA;">
+                    <tr>
+                        <th class="ps-4" style="font-size: 0.85rem; padding: 18px 20px;">ID</th>
+                        <th style="font-size: 0.85rem; padding: 18px 20px;">ชื่ออะไหล่</th>
+                        <th class="text-end" style="font-size: 0.85rem; padding: 18px 20px;">จำนวนคงเหลือ</th>
+                        <th class="text-end" style="font-size: 0.85rem; padding: 18px 20px;">ราคา (บาท)</th>
+                        <th class="text-center pe-4" style="font-size: 0.85rem; padding: 18px 20px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr class="brand-row">
+                                <td class="ps-4 align-middle">
+                                    <span class="text-muted fw-bold" style="font-family: 'Montserrat', sans-serif;">#@item.Id.ToString("D4")</span>
+                                </td>
+                                <td class="align-middle fw-semibold text-dark">@item.Name</td>
+                                <td class="align-middle text-end">
+                                    <span class="badge px-3 py-2 rounded-pill @stockBadge(item.StockQuantity)"
+                                          style="font-weight: 500; min-width: 58px;">
+                                        @stockLabel(item.StockQuantity)
+                                    </span>
+                                </td>
+                                <td class="align-middle text-end font-monospace" style="color: #FF9760; font-weight: 600;">@item.Price.ToString("N2")</td>
+                                <td class="text-center pe-4 align-middle">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="action-icon btn-edit" style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #EAEAEA; color: #4A90E2; text-decoration: none;">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                            <button type="submit" class="action-icon btn-delete" style="width: 38px; height: 38px; border-radius: 8px; border: 1px solid #EAEAEA; color: #E05638; background: white; cursor: pointer;"
+                                                    onclick="return confirm('ยืนยันการลบอะไหล่ชิ้นนี้?')">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-inbox d-block mb-3" style="font-size:3rem; color:#EAEAEA;"></i>
+                                <h6 class="fw-bold mb-1">ยังไม่มีอะไหล่ในระบบ</h6>
+                                <p class="text-muted small mb-3">เพิ่มอะไหล่ก่อน พนักงานถึงจะเบิกได้</p>
+                                <a asp-action="Create" class="btn btn-sm px-4"
+                                   style="background:#FF9760; color:#fff; border-radius:30px;">
+                                    <i class="bi bi-plus-lg me-1"></i> เพิ่มอะไหล่ชิ้นแรก
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .brand-row:hover {
+        background-color: #FFF2EB !important;
+    }
+
+    .btn-edit:hover {
+        background: #4A90E2;
+        color: white !important;
+    }
+
+    .btn-delete:hover {
+        background: #E05638;
+        color: white !important;
+    }
+</style>
+

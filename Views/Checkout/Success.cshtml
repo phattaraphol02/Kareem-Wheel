@@ -1,0 +1,101 @@
+﻿@if (Model.Status == "Pending" || Model.Status == "New")
+{
+    <div class="payment-upload-section mt-5 p-4 p-md-5" style="background: #ffffff; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div class="text-center mb-4">
+            <h5 class="fw-bold text-uppercase" style="letter-spacing: 2px;">Payment Verification</h5>
+            <p class="text-muted small">Please upload your transfer slip to verify your order</p>
+        </div>
+
+        <form asp-controller="Order" asp-action="UploadSlip" method="post" enctype="multipart/form-data" id="slipForm">
+            <input type="hidden" name="orderId" value="@Model.Order_Id" />
+
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="upload-drop-zone" id="dropZone" onclick="document.getElementById('slipInput').click()">
+                        <div id="previewContainer" class="d-none">
+                            <img id="imagePreview" src="#" alt="Preview" class="img-fluid mb-2" style="max-height: 200px; border-radius: 12px; border: 2px solid var(--rim-orange);">
+                            <p class="small fw-bold mt-2 text-rim">Click to change image</p>
+                        </div>
+                        <div id="uploadPrompt">
+                            <div class="icon-circle mb-3"><i class="bi bi-camera-fill"></i></div>
+                            <p class="fw-bold mb-1">Select Slip Image</p>
+                            <span class="text-muted" style="font-size: 0.75rem;">JPG or PNG (Max 5MB)</span>
+                        </div>
+                        <input type="file" name="slip" id="slipInput" class="d-none" accept="image/*" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-rim-orange w-100 py-3 mt-4 fw-bold shadow-sm" style="border-radius: 12px; letter-spacing: 1px;">
+                        <i class="bi bi-check-circle me-2"></i> Confirm & Submit Slip
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+<style>
+    .upload-drop-zone {
+        border: 2px dashed #ddd;
+        padding: 40px 20px;
+        text-align: center;
+        background: #fdfdfd;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 16px;
+    }
+
+        .upload-drop-zone:hover {
+            border-color: var(--rim-orange);
+            background: var(--rim-orange-light);
+        }
+
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+        background: #fff2eb;
+        color: var(--rim-orange);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 1.5rem;
+    }
+
+    .btn-rim-orange {
+        background-color: var(--rim-orange) !important; /* บังคับให้ใช้สีส้มตลอด */
+        color: black !important; /* ตัวอักษรสีขาว */
+        border: none;
+        padding: 15px 30px;
+        font-weight: bold;
+        transition: 0.3s;
+        display: block;
+        width: 100%;
+        border-radius: 12px;
+        opacity: 1 !important;
+    }
+
+        .btn-rim-orange:hover {
+            background: #f38349;
+            color: white;
+        }
+
+    .text-rim {
+        color: var(--rim-orange);
+    }
+</style>
+
+<script>
+    document.getElementById('slipInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('previewContainer').classList.remove('d-none');
+                document.getElementById('uploadPrompt').classList.add('d-none');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>

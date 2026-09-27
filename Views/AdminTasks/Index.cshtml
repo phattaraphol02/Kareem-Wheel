@@ -1,0 +1,189 @@
+﻿@model CS66_WebApplication1.Models.AdminTasksViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    body {
+        background-color: #F9FAFB;
+        font-family: 'Kanit', sans-serif;
+        color: #2D2D2D;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin-top: 50px;
+    }
+
+    .welcome-banner {
+        background: #FFFFFF;
+        padding: 40px;
+        border-radius: 12px;
+        border: 1px solid #EAEAEA;
+        border-left: 6px solid #FF9760;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    .btn-rim-orange {
+        background: #FF9760;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+        .btn-rim-orange:hover {
+            background: #f38349;
+            color: white;
+        }
+
+    .task-card {
+        background: #FFFFFF;
+        border-radius: 12px;
+        border: 1px solid #EAEAEA;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .rim-table th {
+        color: #7A7A7A;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 16px;
+        border-bottom: 2px solid #EAEAEA;
+    }
+
+    .rim-table td {
+        padding: 18px 16px;
+        border-bottom: 1px solid #EAEAEA;
+        vertical-align: middle;
+    }
+
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+    }
+</style>
+
+<div class="container">
+    <div class="welcome-banner d-flex justify-content-between align-items-center">
+        <div>
+            <h6 style="color: #FF9760;">TASK MANAGEMENT</h6>
+            <h2 class="fw-bold">มอบหมายงานและติดตามงาน</h2>
+        </div>
+        <button type="button" class="btn btn-rim-orange" data-bs-toggle="modal" data-bs-target="#assignTaskModal">
+            <i class="bi bi-plus-lg"></i> มอบหมายงานใหม่
+        </button>
+    </div>
+
+    <div class="task-card">
+        <div class="table-responsive">
+            <table class="table rim-table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>หัวข้อ</th>
+                        <th>พนักงาน</th>
+                        <th>ความสำคัญ</th>
+                        <th>กำหนดส่ง</th>
+                        <th>สถานะ</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model.Tasks)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-muted">#@task.Id</td>
+                            <td><div class="fw-semibold">@task.Title</div><small class="text-muted">@task.Description</small></td>
+                            <td>@task.EmployeeName</td>
+                            <td>@task.Priority</td>
+                            <td>@task.DueDate.ToString("dd MMM yyyy")</td>
+                            <td><span class="badge bg-light text-dark border">@task.Status</span></td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#detailsModal-@task.Id"><i class="bi bi-info-circle text-info me-2"></i>รายละเอียด</a></li>
+                                        <li>
+                                            <form asp-controller="AdminTasks" asp-action="Delete" asp-route-id="@task.Id" method="post">
+                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('ยืนยันการลบ?');"><i class="bi bi-trash3 me-2"></i>ลบงาน</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="detailsModal-@task.Id" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content p-3">
+                                    <div class="modal-header"><h5 class="modal-title fw-bold">รายละเอียด: @task.Title</h5></div>
+                                    <div class="modal-body"><p>@task.Description</p><p class="text-muted">ครบกำหนด: @task.DueDate.ToString("dd MMM yyyy")</p></div>
+                                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="assignTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form asp-controller="AdminTasks" asp-action="Create" method="post" class="modal-content p-3">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2" style="color: #FF9760;"></i>มอบหมายงานใหม่</h5>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">หัวข้อหรืองาน</label>
+                    <input type="text" name="Title" class="form-control" placeholder="เช่น เปลี่ยนถ่ายน้ำมันเครื่อง..." required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">รายละเอียดเพิ่มเติม</label>
+                    <textarea name="Description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">เลือกพนักงาน</label>
+                        <select name="EmployeeId" class="form-select" required>
+                            @foreach (var emp in Model.Employees)
+                            {
+                                <option value="@emp.Id">@emp.FullName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">ความสำคัญ</label>
+                        <select name="Priority" class="form-select">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">กำหนดส่งงาน</label>
+                        <input type="date" name="DueDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="submit" class="btn btn-rim-orange">บันทึกและส่งงาน</button>
+            </div>
+        </form>
+    </div>
+</div>

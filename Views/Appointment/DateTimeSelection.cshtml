@@ -1,0 +1,210 @@
+﻿@{
+    ViewData["Title"] = "เลือกวันและเวลานัดหมาย";
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+<style>
+    .booking-container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #EAEAEA;
+        padding: 40px;
+    }
+
+    .time-slot {
+        border: 1px solid #EAEAEA;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        font-weight: 500;
+        color: #2D2D2D;
+    }
+
+        .time-slot:hover:not(.disabled) {
+            border-color: #FF9760;
+            background: #FFF2EB;
+            color: #FF9760;
+        }
+
+        .time-slot.selected {
+            background: #FF9760;
+            color: white;
+            border-color: #FF9760;
+            box-shadow: 0 4px 10px rgba(255, 151, 96, 0.3);
+        }
+
+        .time-slot.disabled {
+            background: #F5F5F5;
+            color: #BDBDBD;
+            cursor: not-allowed;
+            border-color: #EAEAEA;
+        }
+</style>
+
+<div class="container">
+    <div class="booking-container">
+        <!-- 🔔 ส่วนนี้คือการแสดงแจ้งเตือน Error จาก TempData ที่ทำไว้ใน Controller ตอนที่คิวหลุด/ซ้ำ -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-4" role="alert">
+                <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <h3 class="fw-bold mb-4 text-center">เลือกวันและ<span style="color: #FF9760;">เวลานัดหมาย</span></h3>
+
+        <form asp-action="ConfirmDateTime" method="post" id="bookingForm">
+            <input type="hidden" name="serviceId" value="@ViewBag.ServiceId" />
+            <input type="hidden" name="selectedDate" id="selectedDate" required />
+            <input type="hidden" name="selectedTime" id="selectedTime" required />
+
+            <div class="row g-5">
+                <div class="col-md-6 border-end">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-calendar-event me-2"></i> 1. เลือกวันที่</h5>
+                    <div id="inline-calendar"></div>
+                    <p class="text-muted small mt-3">*สามารถเลือกจองล่วงหน้าได้สูงสุด 30 วัน</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clock me-2"></i> 2. เลือกเวลา
+                        <span id="displayDate" class="text-muted" style="font-size:0.9rem;">(กรุณาเลือกวันที่ก่อน)</span>
+                    </h5>
+
+                    <!-- ซ่อนกล่องเวลาไว้ก่อนจนกว่าจะเลือกวันที่ -->
+                    <div id="timeSlotsContainer" style="opacity: 0.5; pointer-events: none;">
+                        <div class="row g-2">
+                            <div class="col-12"><h6 class="text-muted small mb-1 mt-2">ช่วงเช้า</h6></div>
+                            <div class="col-4"><div class="time-slot" data-time="09:00">09:00</div></div>
+                            <div class="col-4"><div class="time-slot" data-time="10:00">10:00</div></div>
+                            <div class="col-4"><div class="time-slot" data-time="11:00">11:00</div></div>
+
+                            <div class="col-12"><h6 class="text-muted small mb-1 mt-3">ช่วงบ่าย</h6></div>
+                            <div class="col-4"><div class="time-slot" data-time="13:00">13:00</div></div>
+                            <div class="col-4"><div class="time-slot" data-time="14:00">14:00</div></div>
+                            <div class="col-4"><div class="time-slot" data-time="15:00">15:00</div></div>
+                            <div class="col-4"><div class="time-slot" data-time="16:00">16:00</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5 pt-3 border-top">
+                <a asp-controller="CustomerDashboard" asp-action="Index" class="btn btn-light px-4 py-2 me-2 rounded-pill fw-bold border">ย้อนกลับ</a>
+                <button type="button" id="btnSubmit" class="btn px-5 py-2 rounded-pill fw-bold" style="background: #FF9760; color: white;" disabled>
+                    ยืนยันการนัดหมาย
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        const timeContainer = document.getElementById("timeSlotsContainer");
+        const inputDate = document.getElementById("selectedDate");
+        const inputTime = document.getElementById("selectedTime");
+        const btnSubmit = document.getElementById("btnSubmit");
+        const displayDate = document.getElementById("displayDate");
+
+        // 1. สร้างปฏิทิน
+        flatpickr("#inline-calendar", {
+        inline: true,
+        locale: "th",
+        minDate: "today",
+        maxDate: new Date().fp_incr(30),
+        disable: [
+        function(date) {
+        return (date.getDay() === 0); // วันอาทิตย์หยุด
+        }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+        inputDate.value = dateStr;
+        displayDate.innerHTML = `<span class="text-warning"><i class="bi bi-arrow-repeat spin"></i> กำลังตรวจสอบคิวว่าง...</span>`;
+
+        // ปิดช่องเวลาไว้ระหว่างโหลด
+        timeContainer.style.opacity = "0.5";
+        timeContainer.style.pointerEvents = "none";
+        inputTime.value = "";
+        checkReadyToSubmit();
+
+        // 🌟 2. วิ่งไปถาม Controller ว่า "วันนี้" มีเวลาไหนว่างบ้าง (พร้อมจำนวนช่างที่ว่างเหลือต่อช่วงเวลา)
+        fetch(`/Appointment/GetAvailableTimes?selectedDate=${dateStr}`)
+        .then(response => response.json())
+        .then(availableSlots => {
+        displayDate.innerHTML = `(วันที่ ${dateStr})`;
+
+        // แปลงเป็น map เวลา -> จำนวนช่างที่ว่างเหลือ
+        const remainingMap = {};
+        availableSlots.forEach(s => { remainingMap[s.time] = s.remaining; });
+
+        // อัปเดตช่องเวลาทั้งหมด
+        document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.remove('selected');
+        let timeValue = slot.getAttribute('data-time');
+
+        if (remainingMap.hasOwnProperty(timeValue)) {
+        // ยังมีช่างว่างเหลือในช่วงเวลานี้ (จองซ้ำเวลาเดิมได้ ถ้าช่างยังไม่เต็ม)
+        slot.classList.remove('disabled');
+        slot.innerHTML = `${timeValue}<br><small style="font-weight:400;">เหลือ ${remainingMap[timeValue]} คิว</small>`;
+        slot.title = `ช่างว่าง ${remainingMap[timeValue]} คิว`;
+        } else {
+        // ช่างเต็มทุกคนแล้วในช่วงเวลานี้
+        slot.classList.add('disabled');
+        slot.innerText = timeValue + " (เต็ม)";
+        slot.title = "ช่างเต็มคิวช่วงเวลานี้";
+        }
+        });
+
+        // เปิดให้กดได้แล้ว
+        timeContainer.style.opacity = "1";
+        timeContainer.style.pointerEvents = "auto";
+        })
+        .catch(error => {
+        console.error('Error fetching times:', error);
+        displayDate.innerHTML = `<span class="text-danger">เกิดข้อผิดพลาดในการเชื่อมต่อ</span>`;
+        });
+        }
+        });
+
+        // 3. จัดการเมื่อกดเลือกเวลา (ใช้การดักแบบ Event Delegation เพื่อความเสถียร)
+        timeContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('time-slot') && !e.target.classList.contains('disabled')) {
+        document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
+        e.target.classList.add('selected');
+
+        inputTime.value = e.target.getAttribute('data-time');
+        checkReadyToSubmit();
+        }
+        });
+
+        // 4. ตรวจสอบข้อมูลก่อนเปิดปุ่มยืนยัน
+        function checkReadyToSubmit() {
+        if(inputDate.value !== "" && inputTime.value !== "") {
+        btnSubmit.disabled = false;
+        } else {
+        btnSubmit.disabled = true;
+        }
+        }
+
+        // 5. สั่ง Submit Form (พร้อมทำเอฟเฟกต์โหลด กันลูกค้ากดซ้ำรัวๆ)
+        btnSubmit.addEventListener('click', function() {
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึกคิว...';
+        this.disabled = true;
+        timeContainer.style.pointerEvents = "none";
+
+        document.getElementById('bookingForm').submit();
+        });
+        });
+    </script>
+}

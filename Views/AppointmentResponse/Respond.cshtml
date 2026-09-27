@@ -1,0 +1,135 @@
+@model CS66_WebApplication1.Models.Appointment
+@{
+    Layout = null;
+    string response = ViewBag.Response as string ?? "confirm";
+    string token = ViewBag.Token as string ?? "";
+    bool isConfirm = response == "confirm";
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ยืนยันคิว - Kareem Wheel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --rim-orange: #FF9760;
+            --rim-orange-deep: #F97A38;
+            --rim-orange-light: #FFF2EB;
+            --rim-bg-light: #FBFAF9;
+            --rim-border: #EFEAE6;
+            --text-main: #26221F;
+            --text-muted: #9A9086;
+            --ok: #2E7D32;
+            --no: #C23636;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--rim-bg-light);
+            font-family: 'Kanit', Tahoma, sans-serif;
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .card {
+            background: #FFFFFF;
+            border: 1px solid var(--rim-border);
+            border-radius: 20px;
+            box-shadow: 0 12px 34px rgba(38, 34, 31, 0.08);
+            padding: 36px 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--rim-orange-deep);
+            margin-bottom: 6px;
+        }
+
+        .icon-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 2rem;
+            color: #fff;
+            background: @(isConfirm ? "var(--ok)" : "var(--no)");
+        }
+
+        h3 { font-weight: 700; margin-bottom: 8px; }
+
+        .detail-box {
+            background: var(--rim-orange-light);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+
+            .detail-box div { margin-bottom: 6px; }
+            .detail-box div:last-child { margin-bottom: 0; }
+
+        .btn-action {
+            width: 100%;
+            border: none;
+            border-radius: 30px;
+            padding: 14px;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #fff;
+            cursor: pointer;
+            background: @(isConfirm ? "var(--ok)" : "var(--no)");
+        }
+
+        .muted { color: var(--text-muted); font-size: 0.82rem; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand">KAREEM WHEEL</div>
+        <div class="icon-circle">
+            <i class="bi @(isConfirm ? "bi-check-lg" : "bi-x-lg")"></i>
+        </div>
+        <h3>@(isConfirm ? "ยืนยันว่าท่านสะดวกมาตามนัด?" : "ยืนยันว่าท่านไม่สะดวกมาตามนัด?")</h3>
+        <p class="text-muted" style="color: var(--text-muted);">
+            @(isConfirm
+                ? "กดปุ่มด้านล่างเพื่อยืนยันคิว ทางร้านจะรอต้อนรับท่านตามเวลานัดหมาย"
+                : "กดปุ่มด้านล่างเพื่อสละคิวนี้ คิวจะถูกเปิดให้ลูกค้าท่านอื่นจองแทนทันที")
+        </p>
+
+        <div class="detail-box">
+            <div><i class="bi bi-tools"></i> บริการ: <b>@(Model.Service?.Service_Name ?? "บริการทั่วไป")</b></div>
+            <div><i class="bi bi-calendar-event"></i> วันที่: <b>@Model.Appointment_Date.ToString("dd MMM yyyy")</b></div>
+            <div><i class="bi bi-clock"></i> เวลา: <b>@Model.Appointment_Date.ToString("HH:mm")</b> น.</div>
+        </div>
+
+        <form method="post" asp-controller="AppointmentResponse" asp-action="Respond">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="token" value="@token" />
+            <input type="hidden" name="response" value="@response" />
+            <button type="submit" class="btn-action">
+                @(isConfirm ? "✅ ยืนยัน สะดวกมา" : "❌ ยืนยัน ไม่สะดวกมา")
+            </button>
+        </form>
+
+        <div class="muted">หากกดผิดลิงก์ สามารถปิดหน้านี้แล้วกลับไปกดลิงก์ที่ถูกต้องในอีเมลได้</div>
+    </div>
+</body>
+</html>

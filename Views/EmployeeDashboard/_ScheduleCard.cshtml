@@ -1,0 +1,42 @@
+@model CS66_WebApplication1.Models.Appointment
+@{
+    var mechanics = ViewData["Mechanics"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var today = ViewData["Today"] as DateTime? ?? DateTime.Today;
+    string category = ViewData["Category"] as string ?? "todo";
+
+    bool isToday = Model.Appointment_Date.Date == today;
+    bool isUnassigned = string.IsNullOrEmpty(Model.Employee_Id);
+
+    string empName = "รอแอดมินจ่ายงาน";
+    if (!isUnassigned && mechanics.ContainsKey(Model.Employee_Id!))
+    {
+        empName = mechanics[Model.Employee_Id!];
+    }
+
+    string employeeKey = isUnassigned ? "unassigned" : Model.Employee_Id!;
+    string searchBlob = $"{Model.Service?.Service_Name} {Model.Customer?.Customer_Name} {empName}".ToLowerInvariant();
+}
+
+<div class="kanban-card card-@category @(isToday ? "card-today" : "")" data-employee="@employeeKey" data-search="@searchBlob">
+    @if (isToday)
+    {
+        <span class="badge mb-2 badge-today"><i class="bi bi-star-fill"></i> คิววันนี้</span>
+    }
+    <div class="kc-time">
+        <i class="bi bi-clock-fill"></i> @Model.Appointment_Date.ToString("dd MMM yyyy") &middot; @Model.Appointment_Date.ToString("HH:mm") น.
+    </div>
+    <div class="kc-service">@(Model.Service?.Service_Name ?? "บริการทั่วไป")</div>
+    <div class="kc-customer">
+        <i class="bi bi-person-fill"></i> @(Model.Customer?.Customer_Name ?? $"รหัส #{Model.Customer_Id}")
+    </div>
+    <div class="kc-footer">
+        @if (isUnassigned)
+        {
+            <span class="employee-badge unassigned"><i class="bi bi-person-dash-fill"></i> @empName</span>
+        }
+        else
+        {
+            <span class="employee-badge"><i class="bi bi-wrench-adjustable"></i> @empName</span>
+        }
+    </div>
+</div>

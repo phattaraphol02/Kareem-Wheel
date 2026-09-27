@@ -1,0 +1,359 @@
+@model CS66_WebApplication1.Models.Order
+
+@{
+    ViewData["Title"] = "ใบเสร็จการชำระเงิน - Kareem Wheel";
+    var details = ViewBag.Details as List<CS66_WebApplication1.Models.OrderDetail>;
+    var payment = ViewBag.Payment as CS66_WebApplication1.Models.Payment;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-bg: #F9FAFB;
+        --rim-border: #EAEAEA;
+        --rim-text: #2D2D2D;
+    }
+
+    body {
+        background-color: var(--rim-bg);
+        font-family: 'Kanit', sans-serif;
+        color: var(--rim-text);
+    }
+
+    .receipt-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: white;
+        border: 2px solid var(--rim-orange);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .receipt-header {
+        background: linear-gradient(135deg, #FF9760 0%, #FFB38A 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .receipt-header h1 {
+        margin: 0;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.8rem;
+    }
+
+    .receipt-header p {
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .receipt-body {
+        padding: 30px;
+    }
+
+    .receipt-section {
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-weight: 600;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--rim-orange);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--rim-border);
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.95rem;
+    }
+
+    .info-row .label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .info-row .value {
+        font-weight: 600;
+        color: var(--rim-text);
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .items-table thead {
+        background: var(--rim-bg);
+        border-bottom: 2px solid var(--rim-border);
+    }
+
+    .items-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--rim-text);
+    }
+
+    .items-table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid var(--rim-border);
+        font-size: 0.95rem;
+    }
+
+    .items-table .text-right {
+        text-align: right;
+    }
+
+    .items-table .item-total {
+        font-weight: 600;
+        color: var(--rim-orange);
+    }
+
+    .receipt-summary {
+        background: var(--rim-bg);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 1rem;
+    }
+
+    .summary-row.total {
+        border-top: 2px solid var(--rim-border);
+        padding-top: 12px;
+        margin-top: 12px;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .summary-row.total .value {
+        color: var(--rim-orange);
+    }
+
+    .receipt-footer {
+        text-align: center;
+        padding: 20px;
+        background: var(--rim-bg);
+        border-top: 1px solid var(--rim-border);
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-paid {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .status-pending {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    .print-btn {
+        display: block;
+        margin: 20px auto;
+        padding: 12px 30px;
+        background: var(--rim-orange);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .print-btn:hover {
+        background: #E58856;
+        transform: translateY(-2px);
+    }
+
+    @@media print {
+        body {
+            background: white;
+        }
+        .receipt-container {
+            max-width: 100%;
+            margin: 0;
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+        .print-btn {
+            display: none;
+        }
+    }
+</style>
+
+<div class="receipt-container">
+    <!-- ส่วนหัวเอกสาร -->
+    <div class="receipt-header">
+        <i class="bi bi-receipt" style="font-size: 2.5rem; display: block; margin-bottom: 10px;"></i>
+        <h1>ใบเสร็จการชำระเงิน</h1>
+        <p>Kareem Wheel - ร้านจำหน่ายและบริการล้อ</p>
+    </div>
+
+    <div class="receipt-body">
+
+        <!-- ข้อมูลออเดอร์ -->
+        <div class="receipt-section">
+            <div class="section-title">ข้อมูลคำสั่งซื้อ</div>
+            <div class="info-row">
+                <span class="label">หมายเลขออเดอร์:</span>
+                <span class="value" style="font-family: 'Montserrat', monospace; font-size: 1.1rem;">@Model.OrderNumber</span>
+            </div>
+            <div class="info-row">
+                <span class="label">วันที่สั่งซื้อ:</span>
+                <span class="value">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
+            </div>
+            <div class="info-row">
+                <span class="label">สถานะ:</span>
+                <span class="value">
+                    @if (Model.Status == "Paid")
+                    {
+                        <span class="status-badge status-paid">✓ ชำระเงินแล้ว</span>
+                    }
+                    else if (Model.Status == "New")
+                    {
+                        <span class="status-badge status-pending">⏳ รอการยืนยัน</span>
+                    }
+                </span>
+            </div>
+        </div>
+
+        <!-- ข้อมูลลูกค้า -->
+        <div class="receipt-section">
+            <div class="section-title">ข้อมูลลูกค้า</div>
+            <div class="info-row">
+                <span class="label">ชื่อ:</span>
+                <span class="value">@Model.Customer.Customer_Name</span>
+            </div>
+            <div class="info-row">
+                <span class="label">โทรศัพท์:</span>
+                <span class="value">@Model.Customer.Phone</span>
+            </div>
+            <div class="info-row">
+                <span class="label">ที่อยู่:</span>
+                <span class="value">@Model.Customer.Address @(Model.Customer.Amphur != null ? Model.Customer.Amphur.Amphur_Name : "")</span>
+            </div>
+        </div>
+
+        <!-- รายการสินค้า -->
+        @if (details != null && details.Any())
+        {
+            <div class="receipt-section">
+                <div class="section-title">รายการสินค้า</div>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>สินค้า</th>
+                            <th class="text-right">ราคา</th>
+                            <th class="text-right">จำนวน</th>
+                            <th class="text-right">รวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in details)
+                        {
+                            <tr>
+                                <td>@(item.Product != null ? item.Product.Product_Name : "สินค้า (ลบแล้ว)")</td>
+                                <td class="text-right">฿@item.Price.ToString("N2")</td>
+                                <td class="text-right">@item.Qty</td>
+                                <td class="text-right item-total">฿@item.SubTotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- สรุปยอดเงิน -->
+            <div class="receipt-summary">
+                <div class="summary-row">
+                    <span>รวมทั้งสิ้น:</span>
+                    <span class="value">฿@Model.GrandTotal.ToString("N2")</span>
+                </div>
+                @if (payment != null && payment.Status == "Verified")
+                {
+                    <div class="summary-row">
+                        <span>ชำระเงินแล้ว:</span>
+                        <span class="value">฿@payment.Amount.ToString("N2")</span>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ข้อมูลการจัดส่ง -->
+        <div class="receipt-section">
+            <div class="section-title">ข้อมูลการจัดส่ง</div>
+            <div class="info-row">
+                <span class="label">วิธีการจัดส่ง:</span>
+                <span class="value">
+                    @if (Model.DeliveryMethod == "Pickup")
+                    {
+                        <span>📍 รับที่ร้าน</span>
+                    }
+                    else if (Model.DeliveryMethod == "Delivery")
+                    {
+                        <span>🚚 จัดส่งถึงบ้าน</span>
+                    }
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="label">สถานะการจัดส่ง:</span>
+                <span class="value">
+                    @if (Model.ShippingStatus == "Shipped")
+                    {
+                        <span>📦 จัดส่งแล้ว</span>
+                    }
+                    else if (Model.ShippingStatus == "Delivered")
+                    {
+                        <span>✓ ส่งถึงมือลูกค้า</span>
+                    }
+                    else
+                    {
+                        <span>⏳ กำลังเตรียมส่ง</span>
+                    }
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="receipt-footer">
+        <p>🙏 ขอบคุณที่ใช้บริการ Kareem Wheel</p>
+        <p style="margin-top: 8px; font-size: 0.8rem;">เอกสารนี้เป็นหลักฐานการชำระเงินที่ถูกต้องตามกฎหมาย</p>
+    </div>
+</div>
+
+<button class="print-btn" onclick="window.print()">
+    <i class="bi bi-printer me-2"></i> พิมพ์ใบเสร็จ
+</button>
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="@Url.Action("History", "Order")" class="btn btn-outline-primary" style="border-radius: 25px; padding: 10px 30px;">
+        <i class="bi bi-arrow-left me-1"></i> กลับไปยังประวัติการสั่งซื้อ
+    </a>
+</div>

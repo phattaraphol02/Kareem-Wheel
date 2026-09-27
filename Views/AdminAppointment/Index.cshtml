@@ -1,0 +1,661 @@
+﻿@model IEnumerable<CS66_WebApplication1.Models.Appointment>
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "ระบบจัดการนัดหมาย";
+    string currentSort = ViewBag.CurrentSort as string ?? "new";
+    var allMechanics = ViewBag.Mechanics as List<SelectListItem> ?? new List<SelectListItem>();
+    var busyByDateTime = ViewBag.BusyByDateTime as Dictionary<DateTime, HashSet<string>> ?? new Dictionary<DateTime, HashSet<string>>();
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-deep: #F97A38;
+        --rim-orange-light: #FFF2EB;
+        --rim-orange-soft: #FFE4D3;
+        --rim-bg-light: #F8F9FA;
+        --rim-border: #EAECEF;
+        --rim-ink: #2B2D42;
+        --rim-muted: #8D99AE;
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--rim-ink);
+    }
+
+    /* ---------- Header / Hero Section ---------- */
+    .admin-header {
+        position: relative;
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        padding: 32px 40px;
+        border-radius: 24px;
+        margin-bottom: 28px;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0 10px 30px rgba(249, 122, 56, 0.05);
+        overflow: hidden;
+    }
+
+        .admin-header::after {
+            content: "";
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,151,96,0.12) 0%, rgba(255,151,96,0) 70%);
+            z-index: 0;
+        }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-icon {
+        background: linear-gradient(135deg, var(--rim-orange) 0%, var(--rim-orange-deep) 100%);
+        color: white;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        font-size: 1.75rem;
+        box-shadow: 0 8px 24px rgba(249, 122, 56, 0.25);
+    }
+
+    .admin-header h2 {
+        font-family: 'Montserrat', 'Kanit', sans-serif;
+        letter-spacing: -0.02em;
+        color: var(--rim-ink);
+    }
+
+    /* ---------- Stats Cards ---------- */
+    .stat-container {
+        display: flex;
+        gap: 12px;
+    }
+
+    .header-stat {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        padding: 12px 24px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        min-width: 100px;
+    }
+
+        .header-stat .num {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--rim-orange-deep);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .header-stat .lbl {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--rim-muted);
+        }
+
+    /* ---------- Controls & Sorting ---------- */
+    .controls-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 0 8px;
+    }
+
+    .sort-toggle {
+        display: inline-flex;
+        background: #FFFFFF;
+        border: 1px solid var(--rim-border);
+        border-radius: 12px;
+        padding: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+        .sort-toggle a {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--rim-muted);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+            .sort-toggle a.active {
+                background: var(--rim-orange-light);
+                color: var(--rim-orange-deep);
+                font-weight: 600;
+            }
+
+            .sort-toggle a:not(.active):hover {
+                color: var(--rim-ink);
+            }
+
+    /* ---------- Main Table Design ---------- */
+    .table-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(43, 45, 66, 0.04);
+        border: 1px solid var(--rim-border);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: #FFFFFF;
+            padding: 20px 24px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--rim-muted);
+            border-bottom: 1px solid var(--rim-border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table tbody td {
+            padding: 20px 24px;
+            vertical-align: middle;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover td {
+            background-color: rgba(255, 242, 235, 0.3);
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    /* ---------- Customer Info ---------- */
+    .avatar-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--rim-orange-light);
+        color: var(--rim-orange-deep);
+        font-weight: 700;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: var(--rim-ink);
+        font-size: 0.95rem;
+    }
+
+    .customer-sub {
+        font-size: 0.8rem;
+        color: var(--rim-muted);
+        margin-top: 2px;
+    }
+
+    .badge-new {
+        font-size: 0.65rem;
+        font-weight: 600;
+        background: #FFF2EB;
+        color: #F97A38;
+        padding: 4px 10px;
+        border-radius: 12px;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+
+    /* ---------- Status Badges ---------- */
+    .badge-status {
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 6px 14px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-pending {
+        background: #FFF8E1;
+        color: #F57F17;
+    }
+
+    .status-confirmed {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .status-cancelled {
+        background: #FFEBEE;
+        color: #C62828;
+    }
+
+    .status-info {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+
+    .sub-badge {
+        font-size: 0.7rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 6px;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    /* ---------- Assignment Tools ---------- */
+    .assign-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #F8F9FA;
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid var(--rim-border);
+    }
+
+    .assign-select {
+        border: none;
+        background: transparent;
+        font-size: 0.85rem;
+        color: var(--rim-ink);
+        min-width: 130px;
+        box-shadow: none !important;
+        cursor: pointer;
+    }
+
+        .assign-select:focus {
+            outline: none;
+        }
+
+    .btn-assign {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--rim-orange);
+        color: white;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-assign:hover {
+            background: var(--rim-orange-deep);
+            transform: scale(1.05);
+        }
+
+    .mechanic-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #F8F9FA;
+        border: 1px solid var(--rim-border);
+        border-radius: 10px;
+        color: var(--rim-ink);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+        .mechanic-chip i {
+            color: var(--rim-orange);
+        }
+
+    /* ---------- Action Buttons (Clean Look) ---------- */
+    .action-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-clean {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        background: transparent;
+    }
+
+        .btn-clean.primary {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+            .btn-clean.primary:hover {
+                background: #2E7D32;
+                color: #FFFFFF;
+            }
+
+        .btn-clean.secondary {
+            background: #F3F4F6;
+            color: var(--rim-ink);
+        }
+
+            .btn-clean.secondary:hover {
+                background: #E2E8F0;
+            }
+
+        .btn-clean.danger {
+            color: #C62828;
+        }
+
+            .btn-clean.danger:hover {
+                background: #FFEBEE;
+            }
+
+    .btn-icon-only {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    /* ---------- Empty State ---------- */
+    .empty-state {
+        padding: 80px 20px;
+    }
+
+        .empty-state .icon-wrap {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: #FFF2EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            transform: rotate(-5deg);
+        }
+
+            .empty-state .icon-wrap i {
+                font-size: 2.5rem;
+                color: var(--rim-orange-deep);
+                transform: rotate(5deg);
+            }
+
+        .empty-state h5 {
+            font-weight: 600;
+            color: var(--rim-ink);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--rim-muted);
+            font-size: 0.95rem;
+        }
+</style>
+
+<div class="container-fluid px-lg-4 py-4 animate__animated animate__fadeIn">
+
+    <!-- Header Section -->
+    <div class="admin-header d-flex justify-content-between align-items-center flex-wrap gap-4 header-content">
+        <div class="d-flex align-items-center gap-4">
+            <div class="header-icon"><i class="bi bi-calendar2-check-fill"></i></div>
+            <div>
+                <h2 class="fw-bold mb-1">จัดการ<span style="color: var(--rim-orange-deep);">คิวนัดหมาย</span></h2>
+                <p class="mb-0 text-muted" style="font-size: 0.95rem;">ตรวจสอบคิว จ่ายงานให้ช่าง และจัดการสถานะลูกค้า</p>
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="stat-container">
+                <div class="header-stat">
+                    <div class="num">@Model.Count()</div>
+                    <div class="lbl">คิวทั้งหมด</div>
+                </div>
+                <div class="header-stat">
+                    <div class="num">@Model.Count(x => x.Status == "ยืนยันแล้ว")</div>
+                    <div class="lbl">ยืนยันแล้ว</div>
+                </div>
+                <div class="header-stat">
+                    <div class="num">@Model.Count(x => string.IsNullOrEmpty(x.Employee_Id) && x.Status != "ยกเลิกแล้ว")</div>
+                    <div class="lbl">รอจ่ายงาน</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Controls Section -->
+    <div class="controls-wrapper">
+        <div class="sort-toggle">
+            <a asp-action="Index" asp-route-sort="new" class="@(currentSort == "new" ? "active" : "")">
+                <i class="bi bi-stars me-1"></i> จองเข้ามาใหม่
+            </a>
+            <a asp-action="Index" asp-route-sort="date" class="@(currentSort == "date" ? "active" : "")">
+                <i class="bi bi-calendar-event me-1"></i> เรียงตามวันนัด
+            </a>
+        </div>
+        <div class="text-muted" style="font-size: 0.85rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            @(currentSort == "date" ? "กำลังแสดงผลเรียงตามวันและเวลาที่ลูกค้านัดหมาย (ใกล้ถึงก่อน)" : "กำลังแสดงผลเรียงตามคิวที่ลูกค้าเพิ่งทำรายการเข้ามาล่าสุด")
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-4">ข้อมูลลูกค้า</th>
+                        <th>บริการ / วันที่นัดหมาย</th>
+                        <th>สถานะปัจจุบัน</th>
+                        <th>การจ่ายงาน (ช่าง)</th>
+                        <th class="text-center pe-4">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var displayName = item.Customer?.Customer_Name ?? $"รหัส: {item.Customer_Id}";
+                            var initial = displayName.Length > 0 ? displayName.Substring(0, 1).ToUpper() : "?";
+                            bool isUnhandled = string.IsNullOrEmpty(item.Employee_Id) && item.Status != "ยกเลิกแล้ว" && item.Status != "เสร็จแล้ว" && item.Status != "เสร็จสิ้น";
+
+                            <tr>
+                                <!-- 1. ข้อมูลลูกค้า -->
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle">@initial</div>
+                                        <div>
+                                            <div class="customer-name">
+                                                @displayName
+                                                @if (isUnhandled)
+                                                {
+                                                    <span class="badge-new">ใหม่</span>
+                                                }
+                                            </div>
+                                            <div class="customer-sub">ID: #@item.Customer_Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- 2. บริการและเวลา -->
+                                <td>
+                                    <div class="fw-bold" style="color: var(--rim-ink); font-size: 0.95rem;">
+                                        @(item.Service?.Service_Name ?? "ไม่ระบุบริการ")
+                                    </div>
+                                    <div class="mt-1" style="color: var(--rim-muted); font-size: 0.85rem;">
+                                        <i class="bi bi-clock me-1"></i> @item.Appointment_Date.ToString("dd MMM yyyy HH:mm") น.
+                                    </div>
+                                </td>
+
+                                <!-- 3. สถานะ -->
+                                <td>
+                                    @if (item.Status == "ยืนยันแล้ว")
+                                    {
+                                        <span class="badge-status status-confirmed"><i class="bi bi-check2-circle"></i> @item.Status</span>
+                                    }
+                                    else if (item.Status == "กำลังทำ")
+                                    {
+                                        <span class="badge-status status-info"><i class="bi bi-arrow-repeat"></i> กำลังดำเนินการ</span>
+                                    }
+                                    else if (item.Status == "รอชำระเงิน" || item.Status == "รอยืนยันชำระเงิน")
+                                    {
+                                        <span class="badge-status status-pending"><i class="bi bi-wallet2"></i> @item.Status</span>
+                                    }
+                                    else if (item.Status == "เสร็จสิ้น")
+                                    {
+                                        <span class="badge-status status-confirmed" style="background:#E0F2F1; color:#00695C;"><i class="bi bi-check-all"></i> เสร็จสิ้น</span>
+                                    }
+                                    else if (item.Status == "ยกเลิกแล้ว")
+                                    {
+                                        <span class="badge-status status-cancelled"><i class="bi bi-x-circle"></i> @item.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status status-pending"><i class="bi bi-hourglass-split"></i> @(item.Status ?? "รอลูกค้ายืนยัน")</span>
+                                    }
+
+                                    <!-- Sub-badges for interaction -->
+                                    <div class="d-block mt-1">
+                                        @if (item.IsCustomerConfirmed)
+                                        {
+                                            <span class="sub-badge status-confirmed"><i class="bi bi-person-check-fill"></i> ลูกค้ายืนยันคิวแล้ว</span>
+                                        }
+                                        else if (item.IsReminderSent)
+                                        {
+                                            <span class="sub-badge status-info"><i class="bi bi-send-check"></i> ส่งแจ้งเตือนแล้ว</span>
+                                        }
+                                    </div>
+                                </td>
+
+                                <!-- 4. การจ่ายงานให้ช่าง -->
+                                <td>
+                                    @if (item.Status != "ยกเลิกแล้ว")
+                                    {
+                                        @if (string.IsNullOrEmpty(item.Employee_Id))
+                                        {
+                                            var busyIds = busyByDateTime.TryGetValue(item.Appointment_Date, out var busySet) ? busySet : new HashSet<string>();
+                                            var freeMechanics = allMechanics.Where(m => !busyIds.Contains(m.Value)).ToList();
+
+                                            @if (freeMechanics.Count > 0)
+                                            {
+                                                <form asp-action="AssignTask" method="post" class="assign-wrapper">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <select name="employeeId" class="form-select form-select-sm assign-select" asp-items="freeMechanics" required>
+                                                        <option value="" disabled selected>เลือกช่าง (ว่าง @freeMechanics.Count)</option>
+                                                    </select>
+                                                    <button type="submit" class="btn-assign" title="ยืนยันจ่ายงาน">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger" style="font-size: 0.85rem; font-weight: 500;">
+                                                    <i class="bi bi-exclamation-circle-fill"></i> ช่างเต็มคิวแล้ว
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="mechanic-chip">
+                                                <i class="bi bi-person-gear"></i> ช่างรับผิดชอบ: @item.Employee_Id
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted" style="font-size: 0.85rem;">-</span>
+                                    }
+                                </td>
+
+                                <!-- 5. ปุ่มจัดการ (Actions) -->
+                                <td class="text-center pe-4">
+                                    <div class="action-group">
+                                        @if (item.Status == "รอยืนยันชำระเงิน")
+                                        {
+                                            @if (!string.IsNullOrEmpty(item.ServicePaymentSlip))
+                                            {
+                                                <a href="/slips/@item.ServicePaymentSlip" target="_blank" class="btn-clean secondary btn-icon-only" title="ดูสลิปโอนเงิน">
+                                                    <i class="bi bi-image"></i>
+                                                </a>
+                                            }
+                                            <form asp-action="ConfirmServicePayment" method="post" onsubmit="return confirm('ยืนยันว่าลูกค้าชำระเงินค่าบริการเรียบร้อยแล้ว?');" style="margin:0;">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn-clean primary" title="ยืนยันการชำระเงิน">
+                                                    <i class="bi bi-check-circle"></i> ยืนยันยอดเงิน
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @if (!item.IsReminderSent && item.Status != "ยกเลิกแล้ว" && item.Status != "เสร็จสิ้น" && item.Status != "รอยืนยันชำระเงิน")
+                                        {
+                                            <form asp-action="SendReminder" method="post" onsubmit="return confirm('ส่งแจ้งเตือนไปให้ลูกค้าคนนี้เพื่อคอนเฟิร์มคิวใช่หรือไม่?');" style="margin:0;">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn-clean secondary" title="ส่งแจ้งเตือนลูกค้า">
+                                                    <i class="bi bi-bell"></i>
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @if (item.Status != "ยกเลิกแล้ว" && item.Status != "เสร็จสิ้น")
+                                        {
+                                            <form asp-action="Cancel" method="post" onsubmit="return confirm('คุณแน่ใจหรือไม่ที่จะยกเลิกการนัดหมายนี้?');" style="margin:0;">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn-clean danger btn-icon-only" title="ยกเลิกนัดหมาย">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="border-bottom-0">
+                                <div class="empty-state text-center">
+                                    <div class="icon-wrap"><i class="bi bi-calendar-check"></i></div>
+                                    <h5>ยังไม่มีรายการนัดหมาย</h5>
+                                    <p class="mb-0">เมื่อลูกค้าจองคิวเข้ามา รายการจะแสดงให้จัดการที่นี่โดยอัตโนมัติ</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

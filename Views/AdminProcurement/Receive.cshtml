@@ -1,0 +1,184 @@
+@model List<CS66_WebApplication1.Models.PurchaseOrderDetail>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "ตรวจรับสินค้า";
+    var po = ViewBag.PO as CS66_WebApplication1.Models.PurchaseOrder;
+    bool isCompleted = po?.Status == "Completed";
+}
+
+<style>
+    :root {
+        --peach-primary: #FF9259;
+        --peach-light: #FFF2EC;
+        --border-color: #EAEAEA;
+        --text-dark: #2D2D2D;
+    }
+
+    .lux-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        padding: 30px;
+    }
+
+    .receive-row {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 12px;
+        background: #FAFAFA;
+    }
+
+    .qty-input {
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        padding: 8px 12px;
+        width: 100px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+        .qty-input:focus {
+            outline: none;
+            border-color: var(--peach-primary);
+            box-shadow: 0 0 0 3px rgba(255, 146, 89, 0.15);
+        }
+
+    .btn-lux-primary {
+        background: var(--peach-primary);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .btn-lux-outline {
+        background: #FFFFFF;
+        color: #8C8A89;
+        border: 1.5px solid var(--border-color);
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="page-header-lux shadow-sm mb-4" style="background: linear-gradient(135deg, #FFFFFF 0%, var(--peach-light) 100%); padding: 30px 40px; border-left: 6px solid var(--peach-primary); border-radius: 16px; border: 1px solid var(--border-color);">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <p class="text-muted small mb-0 text-uppercase fw-semibold" style="letter-spacing: 1.5px;">Procurement</p>
+                <h2 class="fw-bold mb-0">ตรวจรับสินค้า <span style="color: var(--peach-primary)">PO-@po?.PO_Id.ToString("D4")</span></h2>
+                <p class="text-muted small mt-1 mb-0">ซัพพลายเออร์: @(po?.Supplier?.Name) &nbsp;·&nbsp; สั่งเมื่อ @po?.OrderDate.ToString("dd/MM/yyyy")</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a asp-action="Index" class="btn-lux-outline"><i class="bi bi-arrow-left"></i> กลับสู่รายการ PO</a>
+            </div>
+        </div>
+    </div>
+
+    @if (isCompleted)
+    {
+        <div class="alert d-flex align-items-center gap-3 border-0 mb-4" style="background:#E8F5E9; border-left:5px solid #2E7D32 !important; border-radius:12px;">
+            <i class="bi bi-check-circle-fill" style="font-size:1.5rem; color:#2E7D32;"></i>
+            <div><b>รับสินค้าครบตามใบสั่งซื้อแล้ว</b> — ดูรายการที่ได้รับจริงด้านล่าง</div>
+        </div>
+    }
+    else
+    {
+        <div class="alert d-flex align-items-center gap-3 border-0 mb-4" style="background:#FFF4E5; border-left:5px solid #FF9760 !important; border-radius:12px;">
+            <i class="bi bi-info-circle-fill" style="font-size:1.5rem; color:#E65100;"></i>
+            <div>ตรวจนับสินค้าที่ได้รับจริงทีละรายการ แล้วกรอกจำนวน — ระบบจะเพิ่มเข้าสต็อกตามจำนวนที่กรอกเท่านั้น (ไม่ใช่จำนวนที่สั่ง)</div>
+        </div>
+    }
+
+    <form asp-action="Receive" method="post" id="receiveForm">
+        <input type="hidden" name="poId" value="@po?.PO_Id" />
+
+        <div class="lux-card">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    bool isSparePart = item.ItemType == "SparePart";
+                    int alreadyReceived = item.ReceivedQty ?? 0;
+                    <div class="receive-row">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-5">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge @(isSparePart ? "bg-info" : "bg-primary")" style="font-size:0.7rem;">
+                                        @(isSparePart ? "อะไหล่" : "สินค้า")
+                                    </span>
+                                    <span class="badge bg-light text-dark border" style="font-size:0.7rem;">@item.Condition</span>
+                                </div>
+                                <div class="fw-semibold text-dark mt-1">@item.ItemName</div>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <div class="text-muted small">สั่งซื้อ</div>
+                                <div class="fw-bold">@item.Quantity ชิ้น</div>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <div class="text-muted small">ราคาต้นทุน</div>
+                                <div class="fw-bold">฿@item.CostPrice.ToString("N2")</div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="text-muted small mb-1">จำนวนที่ได้รับจริง</div>
+                                @if (isCompleted)
+                                {
+                                    <div class="fw-bold" style="color:@(alreadyReceived >= item.Quantity ? "#2E7D32" : "#E65100");">
+                                        @alreadyReceived / @item.Quantity ชิ้น
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input type="number" class="qty-input" name="receivedQty[@item.DetailId]"
+                                           min="0" max="@item.Quantity" value="@item.Quantity" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted text-center py-4">ไม่พบรายการสินค้าในใบสั่งซื้อนี้</p>
+            }
+        </div>
+
+        @if (!isCompleted)
+        {
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <a asp-action="Index" class="btn-lux-outline">ยกเลิก</a>
+                <button type="submit" class="btn-lux-primary">
+                    <i class="bi bi-check-circle-fill me-1"></i> ยืนยันรับสินค้าเข้าสต็อก
+                </button>
+            </div>
+        }
+    </form>
+</div>
+
+@if (!isCompleted)
+{
+    <script>
+        document.getElementById('receiveForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'ยืนยันรับสินค้า?',
+                text: 'ระบบจะเพิ่มสต็อกตามจำนวนที่กรอกไว้ทันที ไม่สามารถแก้ไขย้อนหลังได้',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#FF9760',
+                cancelButtonColor: '#8C8A89',
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) this.submit();
+            });
+        });
+    </script>
+}

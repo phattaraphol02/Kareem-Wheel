@@ -1,0 +1,171 @@
+﻿@{
+    ViewData["Title"] = "ติดต่อเรา";
+}
+
+<style>
+    .contact-header {
+        background: linear-gradient(135deg, var(--primary-light) 0%, #FFFFFF 100%);
+        padding: 60px 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .contact-title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 36px;
+        color: var(--dark);
+        margin-bottom: 10px;
+    }
+
+    .contact-subtitle {
+        font-family: 'Kanit', sans-serif;
+        color: #8C8A89;
+        font-size: 18px;
+    }
+
+    .info-card {
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 30px;
+        height: 100%;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .contact-list-main {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .contact-item-main {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+    }
+
+        .contact-item-main:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+    .contact-icon-main {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .contact-label-main {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .contact-detail-main {
+        font-family: 'Kanit', sans-serif;
+        color: #6c757d;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    /* ปรับแต่งกรอบแผนที่ให้สูงพอดีกับกล่องข้อมูลฝั่งซ้าย */
+    .map-container {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        height: 100%;
+        min-height: 450px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    }
+</style>
+
+<!-- Header Section -->
+<div class="contact-header">
+    <div class="container">
+        <h1 class="contact-title">CONTACT US</h1>
+        <p class="contact-subtitle">ติดต่อสอบถามข้อมูล หรือปรึกษาเรื่องล้อแม็กและยางกับผู้เชี่ยวชาญของเรา</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4 align-items-stretch">
+
+        <!-- Left Column: Contact Information -->
+        <div class="col-lg-5">
+            <div class="info-card">
+                <h4 class="fw-bold mb-4" style="color: var(--dark);">ข้อมูลการติดต่อ</h4>
+                <ul class="contact-list-main">
+                    <li class="contact-item-main">
+                        <div class="contact-icon-main"><i class="bi bi-telephone"></i></div>
+                        <div>
+                            <div class="contact-label-main">Phone</div>
+                            <div class="contact-detail-main">09-170-72766</div>
+                        </div>
+                    </li>
+
+                    <li class="contact-item-main">
+                        <div class="contact-icon-main"><i class="bi bi-envelope"></i></div>
+                        <div>
+                            <div class="contact-label-main">Email</div>
+                            <div class="contact-detail-main">zeeleen82@gmail.com</div>
+                        </div>
+                    </li>
+
+                    <li class="contact-item-main">
+                        <div class="contact-icon-main"><i class="bi bi-geo-alt"></i></div>
+                        <div>
+                            <div class="contact-label-main">Location</div>
+                            <div class="contact-detail-main">28/11 หมู่ 1 ต.ป่างิ้ว อ.เมือง จ.อ่างทอง 14000</div>
+                        </div>
+                    </li>
+
+                    <li class="contact-item-main">
+                        <div class="contact-icon-main"><i class="bi bi-clock"></i></div>
+                        <div>
+                            <div class="contact-label-main">Business Hours</div>
+                            <div class="contact-detail-main">
+                                จันทร์ - อาทิตย์: 09:00 - 17:00 น.<br>
+                                <span class="text-danger fw-bold mt-1 d-inline-block"><i class="bi bi-info-circle"></i> ปิดทุกวันพุธ</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Column: Map -->
+        <div class="col-lg-7">
+            <div class="map-container">
+                <!-- แผนที่ร้าน ล้อแม็กการีม สาขาอ่างทอง -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.9061817969796!2d100.42070917628979!3d14.604419985882483!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30e21142420ca99b%3A0x6c87a22258bb5ed0!2z4Lil4LmJ4Lit4LmB4Lih4LmH4LiB4LiB4Liy4Lij4Li14LihIOC4quC4suC4guC4suC4reC5iOC4suC4h-C4l-C4reC4hw!5e0!3m2!1sth!2sth!4v1784028874304!5m2!1sth!2sth"
+                        width="100%"
+                        height="100%"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>
+            </div>
+        </div>
+
+    </div>
+</div>

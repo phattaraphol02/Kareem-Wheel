@@ -1,0 +1,526 @@
+﻿@model IEnumerable<CS66_WebApplication1.Models.Product>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<style>
+    /* สีและสไตล์ที่เข้ากับธีม Kareem Wheel */
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-hover: #E58856;
+        --rim-orange-light: #FFF2EB;
+        --rim-dark: #2D2D2D;
+        --rim-border: #EAEAEA;
+        --rim-bg-light: #F9FAFB;
+    }
+
+    .btn-theme {
+        background-color: var(--rim-orange);
+        border-color: var(--rim-orange);
+        color: #ffffff;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-theme:hover {
+            background-color: var(--rim-orange-hover);
+            border-color: var(--rim-orange-hover);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 151, 96, 0.3);
+        }
+
+    .btn-outline-theme {
+        color: var(--rim-orange);
+        border: 1.5px solid var(--rim-orange-light);
+        font-weight: 700;
+        background-color: var(--rim-orange-light);
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-theme:hover {
+            background-color: var(--rim-orange);
+            border-color: var(--rim-orange);
+            color: #ffffff;
+        }
+
+    .card-custom {
+        background: #FFFFFF;
+        border: 1px solid var(--rim-border);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    }
+
+    /* ตกแต่งการ์ดสินค้า */
+    .product-card {
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        border: 1px solid var(--rim-border);
+        background: #ffffff;
+        overflow: hidden;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(255, 151, 96, 0.12);
+            border-color: rgba(255, 151, 96, 0.4);
+        }
+
+    .product-img-wrapper {
+        background-color: var(--rim-bg-light);
+        height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+    }
+
+    .product-img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.4s ease;
+    }
+
+    .product-card:hover .product-img {
+        transform: scale(1.08) rotate(5deg);
+    }
+
+    /* ช่องค้นหา */
+    .search-box {
+        border-radius: 50px;
+        overflow: hidden;
+        border: 1.5px solid var(--rim-border);
+        transition: all 0.3s ease;
+    }
+
+        .search-box:focus-within {
+            border-color: var(--rim-orange);
+            box-shadow: 0 0 0 4px rgba(255, 151, 96, 0.1);
+        }
+
+    /* ตกแต่ง Scrollbar สำหรับตะกร้าสินค้า */
+    .cart-scroll {
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+        .cart-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cart-scroll::-webkit-scrollbar-track {
+            background: var(--rim-bg-light);
+            border-radius: 10px;
+        }
+
+        .cart-scroll::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 10px;
+        }
+
+            .cart-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: var(--rim-orange);
+            }
+
+    /* กล่องจำนวนสินค้าในตะกร้า */
+    .qty-control {
+        border: 1px solid var(--rim-border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .qty-btn {
+        background: var(--rim-bg-light);
+        color: var(--rim-dark);
+        border: none;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+        .qty-btn:hover {
+            background: var(--rim-border);
+        }
+</style>
+
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center justify-content-center rounded-circle me-3 shadow-sm" style="width: 55px; height: 55px; background: linear-gradient(135deg, #FF9760 0%, #FFB38A 100%);">
+                <i class="bi bi-shop fs-3 text-white"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">ระบบขายหน้าร้าน (POS)</h2>
+                <span class="text-muted small">บริการสั่งซื้อสินค้าสำหรับลูกค้า Walk-in</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-grid-fill me-2" style="color: var(--rim-orange);"></i>รายการสินค้า</h5>
+                </div>
+
+                <div class="input-group mb-4 search-box bg-white">
+                    <span class="input-group-text bg-transparent border-0 ps-4"><i class="bi bi-search" style="color: #A0A0A0;"></i></span>
+                    <input type="text" id="searchProduct" class="form-control border-0 py-3 bg-transparent" placeholder="พิมพ์ชื่อสินค้าเพื่อค้นหา..." onkeyup="filterProducts()">
+                </div>
+
+                <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-4" id="productGrid">
+                    @foreach (var p in Model)
+                    {
+                        bool outOfStock = p.Quantity <= 0;
+                        <div class="col product-card-wrapper" data-name="@p.Product_Name.ToLower()">
+                            <div class="card h-100 product-card border-0">
+                                <div class="product-img-wrapper" style="@(outOfStock ? "opacity: 0.4; filter: grayscale(100%);" : "")">
+                                    <img src="/Products/@p.ImageFileName" class="product-img" onerror="this.src='/images/no-image.png'" alt="@p.Product_Name">
+                                </div>
+                                <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                    <div class="mb-3">
+                                        <div class="small text-muted mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">WHEELS</div>
+                                        <h6 class="card-title fw-bold text-dark text-truncate mb-1" title="@p.Product_Name">@p.Product_Name</h6>
+                                        <p class="fw-900 mb-0" style="color: var(--rim-orange); font-size: 1.15rem;">฿@p.Price.ToString("N0")</p>
+                                        <div class="mt-1" style="font-size: 0.78rem;">
+                                            @if (outOfStock)
+                                            {
+                                                <span class="text-danger fw-semibold"><i class="bi bi-x-circle me-1"></i>สินค้าหมด</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-success"><i class="bi bi-check-circle me-1"></i>คงเหลือ @p.Quantity ชิ้น</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (outOfStock)
+                                    {
+                                        <button class="btn btn-sm w-100 rounded-pill py-2" style="background: #f1f3f5; color: #adb5bd; border: 1.5px solid #e9ecef; cursor: not-allowed;" disabled>
+                                            <i class="bi bi-x-circle me-1"></i> สินค้าหมด
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-theme btn-sm w-100 rounded-pill py-2" onclick="addToCart(@p.Product_Id, '@p.Product_Name', @p.Price, @p.Quantity)">
+                                            <i class="bi bi-cart-plus me-1"></i> เพิ่มลงตะกร้า
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card-custom p-4" style="position: sticky; top: 90px;">
+                <h5 class="fw-bold mb-4 border-bottom pb-3" style="color: var(--rim-dark);">
+                    <i class="bi bi-receipt me-2" style="color: var(--rim-orange);"></i>สรุปคำสั่งซื้อ
+                </h5>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.5px;">ข้อมูลลูกค้า</label>
+                    <select id="customerId" class="form-select form-select-lg bg-light" style="border-radius: 12px; font-size: 0.95rem; border-color: var(--rim-border);">
+                        <option value="" disabled selected>-- เลือกลูกค้า --</option>
+                        @foreach (var c in ViewBag.Customers)
+                        {
+                            <option value="@c.Customer_Id">@c.Customer_Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="cart-scroll rounded-3 mb-4">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tbody id="cartTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-5 rounded-3" style="background-color: var(--rim-bg-light); border: 2px dashed var(--rim-border);">
+                                    <i class="bi bi-basket3 fs-1 d-block mb-3" style="color: #D1D5DB;"></i>
+                                    <span class="fw-medium">ยังไม่มีสินค้าในตะกร้า</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.5px;">วิธีชำระเงิน</label>
+                    <select id="paymentMethod" class="form-select form-select-lg bg-light" style="border-radius: 12px; font-size: 0.95rem; border-color: var(--rim-border);">
+                        <option value="เงินสด">💵 ชำระด้วยเงินสด</option>
+                    </select>
+                </div>
+
+                <div class="bg-light p-3 rounded-3 mb-4 border" style="border-color: var(--rim-border) !important;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-secondary">ยอดรวมทั้งสิ้น:</span>
+                        <h2 class="fw-900 m-0" style="color: var(--rim-orange);" id="grandTotal">฿0.00</h2>
+                    </div>
+                </div>
+
+                <button class="btn btn-theme btn-lg w-100 rounded-pill py-3 shadow-sm" onclick="submitOrder()">
+                    ยืนยันการทำรายการ <i class="bi bi-arrow-right-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let cart = [];
+        let stockMap = {};
+
+        // ฟังก์ชันเพิ่มสินค้าเข้าตะกร้า
+        function addToCart(id, name, price, stock) {
+            stockMap[id] = stock;
+            let item = cart.find(x => x.productId === id);
+            let currentQty = item ? item.qty : 0;
+
+            if (currentQty >= stock) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'สินค้าในสต็อกมี ' + stock + ' ชิ้น',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
+                return;
+            }
+
+            if (item) {
+                item.qty += 1;
+            } else {
+                cart.push({ productId: id, name: name, price: price, qty: 1 });
+            }
+            renderCart();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'เพิ่มลงตะกร้าแล้ว',
+                showConfirmButton: false,
+                timer: 1000,
+                timerProgressBar: true,
+                background: '#fff',
+                color: '#2D2D2D'
+            });
+        }
+
+        // ฟังก์ชันเปลี่ยนจำนวนสินค้าในตะกร้า
+        function updateQty(id, delta) {
+            let item = cart.find(x => x.productId === id);
+            if (!item) return;
+
+            let newQty = item.qty + delta;
+            if (newQty <= 0) {
+                cart = cart.filter(x => x.productId !== id);
+                renderCart();
+                return;
+            }
+
+            let maxStock = stockMap[id] || 999;
+            if (newQty > maxStock) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'สต็อกเหลือ ' + maxStock + ' ชิ้น',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
+                return;
+            }
+
+            item.qty = newQty;
+            renderCart();
+        }
+
+        // ฟังก์ชันลบสินค้าออก
+        function removeItem(id) {
+        cart = cart.filter(x => x.productId !== id);
+        renderCart();
+        }
+
+        // ฟังก์ชันวาดตารางตะกร้าสินค้าใหม่
+        function renderCart() {
+        let tbody = document.getElementById('cartTableBody');
+        let totalDisplay = document.getElementById('grandTotal');
+
+        if (cart.length === 0) {
+        tbody.innerHTML = `
+        <tr>
+        <td colspan="4" class="text-center text-muted py-5 rounded-3" style="background-color: var(--rim-bg-light); border: 2px dashed var(--rim-border);">
+        <i class="bi bi-basket3 fs-1 d-block mb-3" style="color: #D1D5DB;"></i>
+        <span class="fw-medium">ยังไม่มีสินค้าในตะกร้า</span>
+        </td>
+        </tr>`;
+        totalDisplay.innerText = "฿0.00";
+        return;
+        }
+
+        let html = '';
+        let grandTotal = 0;
+
+        cart.forEach(item => {
+        let itemTotal = item.price * item.qty;
+        grandTotal += itemTotal;
+        html += `
+        <tr class="border-bottom" style="border-color: #F0F0F0 !important;">
+        <td class="py-3 pe-2" style="max-width: 140px;">
+        <div class="fw-bold text-dark text-truncate" title="${item.name}">${item.name}</div>
+        <div class="small" style="color: #FF9760;">฿${item.price.toLocaleString('th-TH', {minimumFractionDigits: 0})}</div>
+        </td>
+        <td class="text-center align-middle py-3 px-1">
+        <div class="input-group input-group-sm flex-nowrap mx-auto qty-control" style="width: 90px;">
+        <button class="btn qty-btn px-2" type="button" onclick="updateQty(${item.productId}, -1)">-</button>
+        <span class="input-group-text bg-white border-0 px-1 fw-bold text-dark w-100 justify-content-center">${item.qty}</span>
+        <button class="btn qty-btn px-2" type="button" onclick="updateQty(${item.productId}, 1)">+</button>
+        </div>
+        </td>
+        <td class="text-end fw-bold align-middle py-3 text-dark">฿${itemTotal.toLocaleString('th-TH', {minimumFractionDigits: 0})}</td>
+        <td class="text-end align-middle py-3 ps-1">
+        <button class="btn btn-link text-danger p-1" onclick="removeItem(${item.productId})">
+        <i class="bi bi-trash3-fill"></i>
+        </button>
+        </td>
+        </tr>
+        `;
+        });
+
+        tbody.innerHTML = html;
+        totalDisplay.innerText = `฿${grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+        }
+
+        // ฟังก์ชันสำหรับค้นหาชื่อสินค้า
+        function filterProducts() {
+        let input = document.getElementById('searchProduct').value.toLowerCase();
+        let cards = document.getElementsByClassName('product-card-wrapper');
+
+        for (let i = 0; i < cards.length; i++) {
+        let name = cards[i].getAttribute('data-name');
+        if (name.includes(input)) {
+        cards[i].style.display = "";
+        cards[i].classList.add('animate__animated', 'animate__fadeIn');
+        } else {
+        cards[i].style.display = "none";
+        cards[i].classList.remove('animate__animated', 'animate__fadeIn');
+        }
+        }
+        }
+
+        // ฟังก์ชันส่งออเดอร์ไปเซฟที่ Backend
+        function submitOrder() {
+        if (cart.length === 0) {
+        Swal.fire({
+        icon: 'warning',
+        title: 'ตะกร้าว่างเปล่า',
+        text: 'กรุณาเลือกสินค้าลงตะกร้าก่อนยืนยันการขายครับ',
+        confirmButtonColor: '#FF9760'
+        });
+        return;
+        }
+
+        if(typeof confirmAction === "function") {
+        confirmAction('ยืนยันการขายสินค้า?', 'ตรวจสอบรายการและยอดเงินให้ถูกต้องก่อนกดยืนยัน', processCheckout);
+        } else {
+        Swal.fire({
+        title: 'ยืนยันการขายสินค้า?',
+        text: "ตรวจสอบรายการและยอดเงินให้ถูกต้อง",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#FF9760',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ยืนยัน',
+        cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+        if (result.isConfirmed) {
+        processCheckout();
+        }
+        });
+        }
+        }
+
+        function processCheckout() {
+        let custVal = document.getElementById('customerId').value;
+        if (!custVal || isNaN(parseInt(custVal))) {
+            Swal.fire({ icon: 'warning', title: 'กรุณาเลือกลูกค้า', text: 'เลือกลูกค้าจากรายการก่อนยืนยันคำสั่งซื้อ', confirmButtonColor: '#FF9760' });
+            return;
+        }
+
+        let payload = {
+        customerId: parseInt(custVal),
+        paymentMethod: document.getElementById('paymentMethod').value,
+        cartItems: cart.map(x => ({ productId: x.productId, qty: x.qty }))
+        };
+
+        Swal.fire({
+        title: 'กำลังทำรายการ...',
+        allowOutsideClick: false,
+        didOpen: () => {
+        Swal.showLoading();
+        }
+        });
+
+        fetch('/WalkIn/Checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (res.redirected || res.url.includes('/Account/Login')) {
+                throw new Error('SESSION_EXPIRED');
+            }
+            return res.json().then(data => ({ ok: res.ok, data }));
+        })
+        .then(({ ok, data }) => {
+        if (ok && data.success) {
+        Swal.fire({
+        icon: 'success',
+        title: 'ทำรายการสำเร็จ!',
+        text: data.message,
+        confirmButtonColor: '#FF9760'
+        }).then(() => {
+        window.location.href = '/Checkout/Receipt/' + data.orderId;
+        });
+        } else {
+        let msg = data.message || data.title || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+        Swal.fire({
+        icon: 'error',
+        title: 'ไม่สามารถทำรายการได้',
+        text: msg,
+        confirmButtonColor: '#d33'
+        });
+        }
+        })
+        .catch(err => {
+        console.error('Checkout error:', err);
+        if (err.message === 'SESSION_EXPIRED') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'เซสชันหมดอายุ',
+                text: 'กรุณาเข้าสู่ระบบใหม่อีกครั้ง',
+                confirmButtonColor: '#FF9760'
+            }).then(() => { window.location.href = '/Account/Login'; });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'ข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง',
+                confirmButtonColor: '#d33'
+            });
+        }
+        });
+        }
+    </script>
+}

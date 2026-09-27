@@ -1,0 +1,248 @@
+﻿@model CS66_WebApplication1.Models.Customer
+@{
+    ViewData["Title"] = "แก้ไขข้อมูลส่วนตัว";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-border: #eef0f2;
+    }
+
+    body {
+        font-family: 'Kanit', sans-serif;
+        background-color: #F9FAFB;
+    }
+
+    .edit-wrapper {
+        max-width: 800px;
+        margin: 40px auto;
+    }
+
+    .main-form-card {
+        border: 1px solid var(--rim-border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 15px 40px rgba(255, 151, 96, 0.06);
+        padding: 40px;
+    }
+
+    .title-large {
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #2D2D2D;
+    }
+
+        .title-large span {
+            color: var(--rim-orange);
+        }
+
+    .field-label {
+        font-size: 0.85rem;
+        color: #555;
+        margin-bottom: 8px;
+        display: block;
+        font-weight: 600;
+    }
+
+    .modern-input {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        height: 50px;
+        transition: 0.3s;
+    }
+
+        .modern-input:focus {
+            border-color: var(--rim-orange);
+            box-shadow: 0 0 10px rgba(255, 151, 96, 0.15);
+            outline: none;
+        }
+
+    .btn-save {
+        background: var(--rim-orange);
+        color: white;
+        border-radius: 30px;
+        padding: 14px;
+        font-weight: 600;
+        transition: 0.3s;
+        border: none;
+    }
+
+        .btn-save:hover {
+            background: #f38349;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 151, 96, 0.35);
+            color: white;
+        }
+</style>
+
+<div class="container edit-wrapper">
+    <div class="main-form-card animate__animated animate__fadeInUp">
+        <h3 class="title-large"><i class="bi bi-pencil-square me-2" style="color: var(--rim-orange);"></i> แก้ไข<span>ข้อมูลส่วนตัว</span></h3>
+        <hr class="mb-4" style="color: #EAEAEA;">
+
+        <form asp-action="Profile" method="post">
+            <input type="hidden" asp-for="Customer_Id" />
+            <input type="hidden" asp-for="Role" />
+            <input type="hidden" asp-for="IsActive" />
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="field-label">ชื่อ - นามสกุล</label>
+                    <input asp-for="Customer_Name" class="form-control modern-input" required />
+                    <span asp-validation-for="Customer_Name" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="field-label">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                    <input asp-for="Customer_Email" class="form-control modern-input text-muted" type="email" readonly />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="field-label">เบอร์โทรศัพท์</label>
+                    <input asp-for="Phone" class="form-control modern-input" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="field-label">รหัสไปรษณีย์</label>
+                    <input asp-for="PostalCode" class="form-control modern-input" id="postalCode" />
+                    <span asp-validation-for="PostalCode" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="field-label">จังหวัด</label>
+                    <select asp-for="Province_Id" class="form-select modern-input" id="provinceDropdown">
+                        <option value="">-- กรุณาเลือกจังหวัด --</option>
+                        @if (ViewBag.Provinces != null)
+                        {
+                            foreach (var p in (List<CS66_WebApplication1.Models.Province>)ViewBag.Provinces)
+                            {
+                                <option value="@p.Province_Id" selected="@(Model.Province_Id == p.Province_Id)">
+                                    @p.Province_Name
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="field-label">อำเภอ</label>
+                    <select asp-for="Amphur_Id" class="form-select modern-input" id="amphurDropdown">
+                        <option value="">-- กรุณาเลือกอำเภอ --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="field-label">ตำบล</label>
+                    <select asp-for="District_Id" class="form-select modern-input" id="districtDropdown">
+                        <option value="">-- กรุณาเลือกตำบล --</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="field-label">ที่อยู่โดยละเอียด (บ้านเลขที่, หมู่บ้าน, ถนน, ซอย)</label>
+                    <textarea asp-for="Address" class="form-control modern-input" style="height:auto;" rows="3"></textarea>
+                    <span asp-validation-for="Address" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label class="field-label">รหัสผ่านใหม่ (ปล่อยว่างไว้หากใช้รหัสเดิม)</label>
+                    <input name="Password" id="Password" class="form-control modern-input" type="password" placeholder="กรอกรหัสผ่านใหม่ที่ต้องการเปลี่ยน..." autocomplete="new-password" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-save w-100 mt-5 shadow-sm">บันทึกการเปลี่ยนแปลง</button>
+            <a asp-action="Profile" class="btn btn-outline-secondary w-100 mt-2 border-0 fw-bold">ยกเลิก</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var currentProvinceId = '@(Model.Province_Id != null ? Model.Province_Id.ToString() : "")';
+            var currentAmphurId = '@(Model.Amphur_Id != null ? Model.Amphur_Id.ToString() : "")';
+            var currentDistrictId = '@(Model.District_Id != null ? Model.District_Id.ToString() : "")';
+
+            // 1. โหลดข้อมูลเริ่มต้นเมื่อเข้าหน้าเว็บ
+            if (currentProvinceId && currentProvinceId !== "0") {
+                loadAmphurs(currentProvinceId, currentAmphurId, currentDistrictId);
+            }
+
+            // 2. เมื่อเปลี่ยนจังหวัด
+            $('#provinceDropdown').change(function() {
+                loadAmphurs($(this).val(), null, null);
+                $('#districtDropdown').empty().append('<option value="">-- กรุณาเลือกตำบล --</option>');
+                $('#postalCode').val('');
+            });
+
+            // 3. เมื่อเปลี่ยนอำเภอ
+            $('#amphurDropdown').change(function() {
+                loadDistricts($(this).val(), null);
+                $('#postalCode').val('');
+            });
+
+            // 4. เมื่อเปลี่ยนตำบล (อัปเดตรหัสไปรษณีย์)
+            $('#districtDropdown').change(function() {
+                var postcode = $(this).find(':selected').data('postcode');
+                if(postcode) {
+                    $('#postalCode').val(postcode);
+                }
+            });
+
+            // --- ฟังก์ชันโหลดอำเภอ (แก้ไขโค้ดที่พังให้สมบูรณ์แล้ว) ---
+            function loadAmphurs(pId, selectedAmphurId, selectedDistrictId) {
+                if (!pId) return;
+
+                $.getJSON('/Account/GetAmphurs', { provinceId: pId }, function(data) {
+                    var dd = $('#amphurDropdown');
+                    dd.empty().append('<option value="">-- กรุณาเลือกอำเภอ --</option>');
+
+                    $.each(data, function(i, a) {
+                        var val = a.amphur_Id || a.value || a.id;
+                        var text = a.amphur_Name || a.text || a.name;
+
+                        if(val !== undefined && val !== null) {
+                            dd.append('<option value="' + val.toString() + '">' + text + '</option>');
+                        }
+                    });
+
+                    if (selectedAmphurId && selectedAmphurId !== "0") {
+                        dd.val(selectedAmphurId);
+                        // โหลดตำบลต่อหลังจากเลือกอำเภอเสร็จ
+                        loadDistricts(selectedAmphurId, selectedDistrictId);
+                    }
+                });
+            }
+
+            // --- ฟังก์ชันโหลดตำบล ---
+            function loadDistricts(aId, selectedDistrictId) {
+                if (!aId) return;
+
+                $.getJSON('/Account/GetDistricts', { amphurId: aId }, function(data) {
+                    var dd = $('#districtDropdown');
+                    dd.empty().append('<option value="">-- กรุณาเลือกตำบล --</option>');
+
+                    $.each(data, function(i, item) {
+                        var val = item.district_Id || item.value || item.id;
+                        var text = item.district_Name || item.text || item.name;
+                        var pc = item.postCode || item.postalCode || '';
+
+                        if(val !== undefined && val !== null) {
+                            dd.append('<option value="' + val.toString() + '" data-postcode="' + pc + '">' + text + '</option>');
+                        }
+                    });
+
+                    if (selectedDistrictId && selectedDistrictId !== "0") {
+                        dd.val(selectedDistrictId);
+                    }
+                });
+            }
+        });
+    </script>
+}

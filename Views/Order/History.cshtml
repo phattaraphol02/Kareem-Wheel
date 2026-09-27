@@ -1,0 +1,327 @@
+﻿@using CS66_WebApplication1.Models
+@model List<Order>
+
+@{
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "ประวัติการสั่งซื้อ - Kareem Wheel";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Montserrat:wght@500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<style>
+    :root {
+        --peach-primary: #FF9259;
+        --peach-hover: #FF7B39;
+        --peach-light: #FFF2EC;
+        --bg-white: #FFFFFF;
+        --bg-light: #F9FAFB;
+        --text-dark: #2F2E2E;
+        --text-muted: #8C8A89;
+        --border-color: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* ── Header ── */
+    .rim-page-header {
+        padding: 50px 0 30px;
+        text-align: center;
+    }
+
+    .rim-title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 2.2rem;
+        color: var(--text-dark);
+        margin-bottom: 5px;
+    }
+
+    .rim-subtitle {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 400;
+    }
+
+    .header-divider {
+        width: 60px;
+        height: 4px;
+        background: var(--peach-primary);
+        margin: 15px auto;
+        border-radius: 2px;
+    }
+
+    /* ── Table Card ── */
+    .lux-table-container {
+        background: var(--bg-white);
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+    }
+
+    .lux-table {
+        margin-bottom: 0;
+    }
+
+        .lux-table thead th {
+            background: var(--bg-light);
+            border-top: none;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            padding: 18px 20px;
+            font-weight: 600;
+        }
+
+        .lux-table tbody td {
+            padding: 20px;
+            vertical-align: middle;
+            font-weight: 500;
+            color: var(--text-dark);
+            border-bottom: 1px solid #F8F9FA;
+        }
+
+    .order-row {
+        transition: background-color 0.2s ease;
+    }
+
+        .order-row:hover {
+            background-color: var(--peach-light);
+        }
+
+    .order-id {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 1.05rem;
+    }
+
+    .order-date {
+        font-size: 0.95rem;
+        color: #666;
+    }
+
+    .order-total {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        color: var(--peach-primary);
+        font-size: 1.1rem;
+    }
+
+    .tracking-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        color: #555;
+        letter-spacing: 0.5px;
+    }
+
+    /* ── Status Badges ── */
+    .status-badge {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-warning {
+        background: #FFF8E1;
+        color: #F57F17;
+    }
+
+    .status-info {
+        background: #E3F2FD;
+        color: #1976D2;
+    }
+
+    .status-primary {
+        background: #F3E5F5;
+        color: #7B1FA2;
+    }
+
+    .status-success {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .status-danger {
+        background: #FFEBEE;
+        color: #C62828;
+    }
+
+    .status-default {
+        background: var(--peach-light);
+        color: var(--peach-primary);
+    }
+
+    /* ── Action Button ── */
+    .btn-rim-view {
+        border: 1.5px solid var(--peach-primary);
+        color: var(--peach-primary);
+        background: transparent;
+        border-radius: 50px;
+        padding: 8px 24px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-rim-view:hover {
+            background: var(--peach-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 146, 89, 0.3);
+            transform: translateY(-2px);
+        }
+
+    /* ── Empty State ── */
+    .empty-state-box {
+        background: var(--bg-white);
+        border: 1px dashed var(--border-color);
+        border-radius: 24px;
+        padding: 60px 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--peach-light);
+        margin-bottom: 20px;
+        display: inline-block;
+        background: var(--peach-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn-shop-now {
+        background: var(--peach-primary);
+        color: white;
+        border-radius: 50px;
+        padding: 14px 35px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: 0.3s;
+        border: none;
+        display: inline-block;
+        text-decoration: none;
+        box-shadow: 0 8px 20px rgba(255, 146, 89, 0.25);
+    }
+
+        .btn-shop-now:hover {
+            background: var(--peach-hover);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 146, 89, 0.35);
+        }
+</style>
+
+<div class="container pb-5 animate__animated animate__fadeIn">
+
+    <!-- Header -->
+    <div class="rim-page-header">
+        <h2 class="rim-title">ประวัติการสั่งซื้อ</h2>
+        <div class="header-divider"></div>
+        <p class="rim-subtitle">ติดตามสถานะและตรวจสอบรายการสั่งซื้อของคุณได้ที่นี่</p>
+    </div>
+
+    <!-- Content -->
+    <div class="mx-auto" style="max-width: 1050px;">
+        @if (Model != null && Model.Any())
+        {
+            <div class="lux-table-container">
+                <div class="table-responsive">
+                    <table class="table lux-table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-center" width="15%">เลขที่ใบสั่งซื้อ</th>
+                                <th width="15%">วันที่</th>
+                                <th width="15%">ยอดรวม</th>
+                                <th width="20%">สถานะ</th>
+                                <th width="20%">เลขพัสดุ</th>
+                                <th class="text-center" width="15%">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                // จำแนกสถานะเพื่อแสดงสีสันและไอคอนที่เหมาะสม
+                                string rawStatus = order.Status ?? "";
+                                string badgeClass = "status-default";
+                                string icon = "bi-record-circle";
+                                string displayStatus = rawStatus == "" ? "กำลังดำเนินการ" : rawStatus;
+
+                                if (rawStatus == "New" || rawStatus == "Pending" || rawStatus == "WaitingPayment") { badgeClass = "status-warning"; icon = "bi-hourglass-split"; displayStatus = "รอชำระเงิน"; }
+                                else if (rawStatus == "PendingVerify") { badgeClass = "status-warning"; icon = "bi-credit-card-2-back"; displayStatus = "ชำระเงินแล้ว (รอตรวจสอบ)"; }
+                                else if (rawStatus == "Processing") { badgeClass = "status-info"; icon = "bi-box-seam"; displayStatus = "เตรียมสินค้า"; }
+                                else if (rawStatus == "Shipped") { badgeClass = "status-primary"; icon = "bi-truck"; displayStatus = "กำลังจัดส่ง"; }
+                                else if (rawStatus == "Delivered" || rawStatus == "Completed") { badgeClass = "status-success"; icon = "bi-check-circle-fill"; displayStatus = "ส่งสำเร็จ"; }
+                                else if (rawStatus == "Cancelled") { badgeClass = "status-danger"; icon = "bi-x-circle-fill"; displayStatus = "ยกเลิก"; }
+
+                                <tr class="order-row">
+                                    <td class="text-center">
+                                        <span class="order-id">@(order.OrderNumber ?? $"ORD{order.Order_Id:D4}")</span>
+                                    </td>
+                                    <td>
+                                        <span class="order-date">@(order.OrderDate != DateTime.MinValue ? order.OrderDate.ToString("dd MMM yyyy") : "-")</span>
+                                    </td>
+                                    <td>
+                                        <span class="order-total">฿@order.GrandTotal.ToString("N0")</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge @badgeClass">
+                                            <i class="bi @icon"></i> @displayStatus
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(order.TrackingNo))
+                                        {
+                                            @if (!string.IsNullOrEmpty(order.ShippingCompany))
+                                            {
+                                                <span class="d-block small text-muted" style="font-size: 0.78rem;">@order.ShippingCompany</span>
+                                            }
+                                            <span class="tracking-text"><i class="bi bi-box2 me-1 text-muted"></i> @order.TrackingNo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-controller="Order" asp-action="Details" asp-route-id="@order.Order_Id" class="btn-rim-view">
+                                            รายละเอียด
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- กรณีไม่มีประวัติการสั่งซื้อ -->
+            <div class="empty-state-box animate__animated animate__zoomIn" style="animation-duration: 0.6s;">
+                <i class="bi bi-bag-x empty-icon"></i>
+                <h4 class="fw-bold mb-2">ยังไม่มีประวัติการสั่งซื้อ</h4>
+                <p class="text-muted mb-4">เลือกล้อแม็กที่ถูกใจ แล้วสร้างสไตล์ที่เป็นคุณได้เลย!</p>
+                <a asp-controller="Product" asp-action="Index" class="btn-shop-now">
+                    เริ่มช้อปปิ้งเลย <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        }
+    </div>
+</div>

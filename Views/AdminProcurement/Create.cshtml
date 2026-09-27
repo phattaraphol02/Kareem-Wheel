@@ -1,0 +1,384 @@
+@model CS66_WebApplication1.Models.CreatePOViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "สร้างใบสั่งซื้อ";
+
+    var suppliers = ViewBag.Suppliers as List<CS66_WebApplication1.Models.Supplier> ?? new();
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --peach-primary: #FF9259;
+        --peach-light: #FFF2EC;
+        --border-color: #EAEAEA;
+        --text-dark: #2D2D2D;
+    }
+
+    .lux-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        padding: 35px;
+    }
+
+    .lux-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .lux-input, select.lux-input {
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        background-color: #FAFAFA;
+        width: 100%;
+    }
+
+        .lux-input:focus {
+            outline: none;
+            background-color: #FFFFFF;
+            border-color: var(--peach-primary);
+            box-shadow: 0 0 0 3px rgba(255, 146, 89, 0.15);
+        }
+
+    .item-row {
+        background: #FAFAFA;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 14px;
+        position: relative;
+    }
+
+    .btn-remove-row {
+        background: #FFF0F0;
+        color: #E05638;
+        border: none;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .btn-lux-primary {
+        background: var(--peach-primary);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .btn-lux-outline {
+        background: #FFFFFF;
+        color: #8C8A89;
+        border: 1.5px solid var(--border-color);
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add-item {
+        border: 2px dashed #FFC9A3;
+        background: #FFF8F3;
+        color: var(--peach-primary);
+        border-radius: 12px;
+        padding: 12px;
+        width: 100%;
+        font-weight: 600;
+    }
+
+        .btn-add-item:hover {
+            background: var(--peach-light);
+        }
+
+    .grand-total-box {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--peach-light) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 22px 28px;
+    }
+
+    .condition-badge-toggle .btn-check:checked + label {
+        background: var(--peach-primary);
+        color: white;
+        border-color: var(--peach-primary);
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="page-header-lux shadow-sm mb-4" style="background: linear-gradient(135deg, #FFFFFF 0%, var(--peach-light) 100%); padding: 30px 40px; border-left: 6px solid var(--peach-primary); border-radius: 16px; border: 1px solid var(--border-color);">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <p class="text-muted small mb-0 text-uppercase fw-semibold" style="letter-spacing: 1.5px;">Procurement</p>
+                <h2 class="fw-bold mb-0">สร้าง<span style="color: var(--peach-primary)">ใบสั่งซื้อสินค้า</span></h2>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a asp-action="Index" class="btn-lux-outline"><i class="bi bi-arrow-left"></i> กลับสู่รายการ PO</a>
+            </div>
+        </div>
+    </div>
+
+    @if (!suppliers.Any())
+    {
+        <div class="alert d-flex align-items-center gap-3 border-0 mb-4" style="background:#FFF4E5; border-left:5px solid #FF9760 !important; border-radius:12px;">
+            <i class="bi bi-exclamation-triangle-fill" style="font-size:1.5rem; color:#E65100;"></i>
+            <div>
+                ยังไม่มีซัพพลายเออร์ในระบบ —
+                <a asp-controller="AdminSuppliers" asp-action="Create" class="fw-bold" style="color:#E65100;">เพิ่มซัพพลายเออร์ก่อน</a>
+            </div>
+        </div>
+    }
+
+    <form asp-action="Create" method="post" id="poForm">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="lux-card mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="lux-label"><i class="bi bi-truck text-primary"></i> ซัพพลายเออร์</label>
+                            <select name="SupplierId" class="lux-input" required>
+                                <option value="">-- เลือกซัพพลายเออร์ --</option>
+                                @foreach (var s in suppliers)
+                                {
+                                    <option value="@s.SupplierId">@s.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="lux-label"><i class="bi bi-calendar-event text-primary"></i> วันที่สั่งซื้อ</label>
+                            <input type="date" name="OrderDate" class="lux-input" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lux-card">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-list-check text-primary me-1"></i> รายการสินค้าที่สั่งซื้อ</h6>
+                    <div id="itemsContainer"></div>
+                    <button type="button" class="btn-add-item mt-2" onclick="addRow()">
+                        <i class="bi bi-plus-circle me-1"></i> เพิ่มรายการสินค้า
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="sticky-top" style="top: 2rem;">
+                    <div class="grand-total-box mb-3">
+                        <p class="text-muted small mb-1 text-uppercase fw-semibold">ยอดรวมใบสั่งซื้อ</p>
+                        <h2 class="fw-bold mb-0" id="grandTotalDisplay" style="color: var(--peach-primary); font-family:'Montserrat',sans-serif;">฿0.00</h2>
+                        <p class="text-muted small mt-2 mb-0"><span id="itemCountDisplay">0</span> รายการ</p>
+                    </div>
+
+                    <button type="submit" class="btn-lux-primary w-100 py-3">
+                        <i class="bi bi-check-circle-fill me-1"></i> บันทึกใบสั่งซื้อ
+                    </button>
+                    <a asp-action="Index" class="btn-lux-outline w-100 justify-content-center mt-2">ยกเลิก</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // ข้อมูลสินค้า/อะไหล่ทั้งหมด ส่งมาจาก Controller เพื่อ build dropdown แบบไดนามิก
+    // serialize เป็น camelCase ให้ตรงกับที่ใช้ในฝั่ง JS ด้านล่าง
+    @{
+        var jsonOpts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+    }
+    const PRODUCTS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Products, jsonOpts));
+    const SPAREPARTS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.SpareParts, jsonOpts));
+
+    // แยกสินค้าตามหมวด เพื่อให้เลือก "ล้อ" หรือ "ยาง" ได้ตรงประเภท
+    function productsByCategory(catKeyword) {
+        return PRODUCTS.filter(p => (p.categoryName || '').includes(catKeyword));
+    }
+
+    let rowIndex = 0;
+
+    function addRow() {
+        const container = document.getElementById('itemsContainer');
+        const i = rowIndex++;
+
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.id = `row-${i}`;
+        div.innerHTML = `
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="lux-label mb-1">ประเภทสินค้า</label>
+                    <select class="lux-input item-category" onchange="onCategoryChange(${i})">
+                        <option value="ล้อ">ล้อรถยนต์</option>
+                        <option value="ยาง">ยางรถยนต์</option>
+                        <option value="อะไหล่">อะไหล่รถยนต์</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="lux-label mb-1">รายการสินค้า</label>
+                    <select class="lux-input item-select" onchange="onItemChange(${i})"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="lux-label mb-1">จำนวน</label>
+                    <input type="number" class="lux-input item-qty" min="1" value="1" onchange="calcTotal()" />
+                </div>
+                <div class="col-md-2">
+                    <label class="lux-label mb-1">ราคาต้นทุน/ชิ้น</label>
+                    <input type="number" class="lux-input item-cost" min="0" step="0.01" value="0" onchange="calcTotal()" />
+                </div>
+                <div class="col-md-1 text-end">
+                    <button type="button" class="btn-remove-row" onclick="removeRow(${i})" title="ลบรายการนี้">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row g-2 align-items-center mt-2">
+                <div class="col-md-3">
+                    <label class="lux-label mb-1">สภาพสินค้า</label>
+                    <select class="lux-input item-condition">
+                        <option value="มือ1">มือ 1 (ใหม่)</option>
+                        <option value="มือ2">มือ 2 (มือสอง)</option>
+                    </select>
+                </div>
+                <div class="col-md-9 text-end">
+                    <span class="text-muted small">รวม: </span>
+                    <span class="fw-bold item-line-total" style="color: var(--peach-primary); font-size:1.1rem;">฿0.00</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+        onCategoryChange(i);
+        calcTotal();
+    }
+
+    function onCategoryChange(i) {
+        const row = document.getElementById(`row-${i}`);
+        const category = row.querySelector('.item-category').value;
+        const select = row.querySelector('.item-select');
+        const conditionSelect = row.querySelector('.item-condition');
+
+        select.innerHTML = '';
+
+        if (category === 'อะไหล่') {
+            SPAREPARTS.forEach(sp => {
+                const opt = document.createElement('option');
+                opt.value = 'SP-' + sp.id;
+                opt.textContent = `${sp.name} (คงเหลือ ${sp.stockQuantity} ชิ้น)`;
+                select.appendChild(opt);
+            });
+            // ✓ อะไหล่บังคับมือ 1 เสมอตามสเปก — ล็อก dropdown ไว้
+            conditionSelect.value = 'มือ1';
+            conditionSelect.disabled = true;
+        } else {
+            const list = productsByCategory(category === 'ล้อ' ? 'แม็ก' : 'ยาง');
+            list.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = 'P-' + p.product_Id;
+                opt.textContent = p.product_Name;
+                select.appendChild(opt);
+            });
+            conditionSelect.disabled = false;
+        }
+        onItemChange(i);
+    }
+
+    function onItemChange(i) {
+        checkDuplicates();
+    }
+
+    function removeRow(i) {
+        const row = document.getElementById(`row-${i}`);
+        if (row) row.remove();
+        calcTotal();
+    }
+
+    // กันเลือกสินค้า/อะไหล่ชิ้นเดียวกันซ้ำหลายแถว
+    function checkDuplicates() {
+        const selects = document.querySelectorAll('.item-select');
+        const seen = {};
+        let hasDuplicate = false;
+
+        selects.forEach(s => {
+            s.style.borderColor = '';
+            if (s.value) {
+                if (seen[s.value]) {
+                    hasDuplicate = true;
+                    s.style.borderColor = '#E05638';
+                    seen[s.value].style.borderColor = '#E05638';
+                } else {
+                    seen[s.value] = s;
+                }
+            }
+        });
+
+        return hasDuplicate;
+    }
+
+    function calcTotal() {
+        let grand = 0;
+        let count = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const cost = parseFloat(row.querySelector('.item-cost').value) || 0;
+            const lineTotal = qty * cost;
+            row.querySelector('.item-line-total').textContent = '฿' + lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+            grand += lineTotal;
+            count++;
+        });
+        document.getElementById('grandTotalDisplay').textContent = '฿' + grand.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+        document.getElementById('itemCountDisplay').textContent = count;
+    }
+
+    // เริ่มต้นด้วย 1 แถว
+    addRow();
+
+    // ก่อนส่งฟอร์ม: แปลงข้อมูลจาก UI เป็น hidden inputs ตามที่ Controller ต้องการ (Items[i].xxx)
+    document.getElementById('poForm').addEventListener('submit', function (e) {
+        if (checkDuplicates()) {
+            e.preventDefault();
+            Swal.fire({ icon: 'error', title: 'มีรายการซ้ำ', text: 'กรุณาตรวจสอบรายการสินค้าที่เลือกซ้ำกัน', confirmButtonColor: '#FF9760' });
+            return;
+        }
+
+        const rows = document.querySelectorAll('.item-row');
+        if (rows.length === 0) {
+            e.preventDefault();
+            Swal.fire({ icon: 'warning', title: 'ยังไม่มีรายการสินค้า', text: 'กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ', confirmButtonColor: '#FF9760' });
+            return;
+        }
+
+        let idx = 0;
+        rows.forEach(row => {
+            const selectVal = row.querySelector('.item-select').value;
+            if (!selectVal) return; // ข้ามแถวที่ยังไม่เลือกสินค้า
+
+            const [type, id] = selectVal.split('-');
+            const itemType = type === 'SP' ? 'SparePart' : 'Product';
+
+            const fields = {
+                ItemType: itemType,
+                ProductId: itemType === 'Product' ? id : '',
+                SparePartId: itemType === 'SparePart' ? id : '',
+                Quantity: row.querySelector('.item-qty').value,
+                CostPrice: row.querySelector('.item-cost').value,
+                Condition: row.querySelector('.item-condition').value
+            };
+
+            Object.keys(fields).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `Items[${idx}].${key}`;
+                input.value = fields[key];
+                this.appendChild(input);
+            });
+            idx++;
+        });
+    });
+</script>

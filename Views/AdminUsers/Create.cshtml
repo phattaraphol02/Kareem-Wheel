@@ -1,0 +1,268 @@
+﻿@model CS66_WebApplication1.Models.Customer
+@{
+    ViewData["Title"] = "Add New User";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+    --rim-orange: #FF9760;
+    --rim-orange-light: #FFF2EB;
+    --rim-text: #1E1E1E;
+    --rim-light: #ffffff;
+    --rim-border: #eef0f2;
+    }
+
+    body {
+    background-color: #FDFDFD;
+    font-family: 'Montserrat', 'Kanit', sans-serif;
+    color: var(--rim-text);
+    font-weight: 400;
+    }
+
+    .reg-wrapper {
+    max-width: 1000px;
+    margin: auto;
+    padding-top: 3rem;
+    }
+
+    .main-form-card {
+    border: 1px solid var(--rim-border);
+    border-radius: 16px;
+    background: var(--rim-light);
+    box-shadow: 0 15px 40px rgba(255, 151, 96, 0.06);
+    }
+
+    .form-header-box {
+    background: #fff;
+    padding: 45px 50px 25px 50px;
+    border-bottom: 2px solid var(--rim-orange-light);
+    }
+
+    .title-large {
+    color: var(--rim-text);
+    font-weight: 900;
+    font-size: 2.4rem;
+    text-transform: uppercase;
+    }
+
+    .title-large span {
+    color: var(--rim-orange);
+    }
+
+    .section-divider {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--rim-orange);
+    display: flex;
+    align-items: center;
+    margin: 35px 0 20px 0;
+    text-transform: uppercase;
+    }
+
+    .section-divider::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, var(--rim-orange-light), transparent);
+    margin-left: 15px;
+    }
+
+    .field-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4A4A4A;
+    margin-bottom: 8px;
+    display: block;
+    }
+
+    .modern-input {
+    border: 2px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 12px 15px;
+    height: 55px;
+    font-size: 1rem;
+    font-weight: 400;
+    }
+
+    .btn-submit-rims {
+    background: var(--rim-orange);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: 0.3s;
+    }
+
+    .btn-submit-rims:hover {
+    background: #f38349;
+    color: white;
+    box-shadow: 0 8px 25px rgba(255, 151, 96, 0.35);
+    }
+</style>
+
+<div class="container py-5 reg-wrapper">
+    <div class="card main-form-card animate__animated animate__fadeInUp">
+        <div class="form-header-box">
+            <h1 class="title-large">ADD <span>USER</span></h1>
+            <p class="text-muted small fw-normal mt-1" style="font-size: 0.9rem;">เพิ่มข้อมูลผู้ใช้งานใหม่เข้าสู่ระบบโดยผู้ดูแลร้าน</p>
+        </div>
+
+        <div class="card-body px-4 px-5 pb-5">
+            <form asp-controller="AdminUsers" asp-action="Create" method="post" id="userForm">
+                @Html.AntiForgeryToken()
+
+                <div class="section-divider">01. ข้อมูลบัญชีและสิทธิ์ (Account & Role)</div>
+                <div class="row g-4 mb-2">
+                    <div class="col-md-12"><label class="field-label">ชื่อ-นามสกุล</label><input asp-for="Customer_Name" placeholder="กรอกชื่อและนามสกุล" class="form-control modern-input" required /></div>
+                    <div class="col-md-6"><label class="field-label">อีเมล</label><input asp-for="Customer_Email" placeholder="example@email.com" class="form-control modern-input" type="email" required /></div>
+                    <div class="col-md-6"><label class="field-label">รหัสผ่าน</label><input asp-for="Password" type="password" placeholder="ตั้งรหัสผ่าน" class="form-control modern-input" required /></div>
+                    <div class="col-md-12">
+                        <label class="field-label">บทบาทระบบ (System Role)</label>
+                        <select asp-for="Role" class="form-select modern-input" required>
+                            <option value="1">CUSTOMER</option>
+                            <option value="2">STAFF</option>
+                            <option value="9">ADMINISTRATOR</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-divider">02. ข้อมูลติดต่อและที่อยู่จัดส่ง (Logistics)</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4"><label class="field-label">เบอร์โทรศัพท์</label><input asp-for="Phone" placeholder="08XXXXXXXX" class="form-control modern-input" required /></div>
+                    <div class="col-md-8"><label class="field-label">ที่อยู่</label><input asp-for="Address" placeholder="บ้านเลขที่, ถนน, หมู่บ้าน" class="form-control modern-input" required /></div>
+
+                    <!-- 🗺️ ดึงโครงสร้าง 4 คอลัมน์ (จังหวัด -> อำเภอ -> ตำบล -> รหัสไปรษณีย์) มาใส่ตรงนี้ -->
+                    <div class="col-md-3">
+                        <label class="field-label">จังหวัด</label>
+                        <select asp-for="Province_Id" id="ProvinceSelect" class="form-select modern-input" required>
+                            <option value="">เลือกจังหวัด</option>
+                            @if (ViewBag.Provinces != null)
+                            {
+                                foreach (var p in ViewBag.Provinces)
+                                {
+                                    <option value="@p.Province_Id">@p.Province_Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">อำเภอ/เขต</label>
+                        <select asp-for="Amphur_Id" id="AmphurSelect" class="form-select modern-input" required>
+                            <option value="">เลือกอำเภอ</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">ตำบล/แขวง</label>
+                        <!-- เพิ่ม District_Id ให้รองรับโครงสร้างแบบเดียวกับหน้าสมัครสมาชิก -->
+                        <select asp-for="District_Id" id="DistrictSelect" class="form-select modern-input" required>
+                            <option value="">เลือกตำบล</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="field-label">รหัสไปรษณีย์</label>
+                        <input asp-for="PostalCode" id="PostalCode" placeholder="10XXX" class="form-control modern-input" required />
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-4">
+                    <div class="col-md-4">
+                        <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-outline-secondary w-100 rounded-pill py-3" style="font-weight: 700; height: 55px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-arrow-left me-1"></i> ย้อนกลับ
+                        </a>
+                    </div>
+                    <div class="col-md-8">
+                        <button type="button" id="btnSubmit" class="btn btn-submit-rims w-100 shadow py-3" style="height: 55px;">
+                            บันทึกข้อมูลผู้ใช้งาน <i class="bi bi-check2-circle ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+        // 1. เมื่อเลือก จังหวัด -> ดึงข้อมูล อำเภอ (เรียกใช้เส้นทางของ AccountController แบบหน้า Register)
+        $('#ProvinceSelect').change(function () {
+        var provinceId = $(this).val();
+
+        $('#AmphurSelect').empty().append('<option value="">เลือกอำเภอ</option>');
+        $('#DistrictSelect').empty().append('<option value="">เลือกตำบล</option>');
+        $('#PostalCode').val('');
+
+        if (provinceId) {
+        $.getJSON('@Url.Action("GetAmphurs", "Account")', { provinceId: provinceId }, function (data) {
+        $.each(data, function (index, item) {
+        $('#AmphurSelect').append('<option value="' + (item.amphur_Id || item.id) + '">' + (item.amphur_Name || item.name) + '</option>');
+        });
+        });
+        }
+        });
+
+        // 2. เมื่อเลือก อำเภอ -> ดึงข้อมูล ตำบล (เรียกใช้เส้นทางของ DistrictController แบบหน้า Register)
+        $('#AmphurSelect').change(function () {
+        var amphurId = $(this).val();
+
+        $('#DistrictSelect').empty().append('<option value="">เลือกตำบล</option>');
+        $('#PostalCode').val('');
+
+        if (amphurId) {
+        $.getJSON('@Url.Action("GetDistrictsByAmphur", "District")', { amphurId: amphurId }, function (data) {
+        $.each(data, function (index, item) {
+        $('#DistrictSelect').append('<option value="' + item.value + '" data-postcode="' + item.postCode + '">' + item.text + '</option>');
+        });
+        });
+        }
+        });
+
+        // 3. เมื่อเลือก ตำบล -> ออโต้ฟิล รหัสไปรษณีย์
+        $('#DistrictSelect').change(function () {
+        var selectedOption = $(this).find('option:selected');
+        var postcode = selectedOption.data('postcode');
+
+        if (postcode) {
+        $('#PostalCode').val(postcode);
+        } else {
+        $('#PostalCode').val('');
+        }
+        });
+
+        // 4. ตรวจสอบฟอร์มก่อน Submit พร้อมกล่องยืนยัน SweetAlert2
+        $('#btnSubmit').click(function () {
+        var form = $('#userForm')[0];
+        if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+        }
+
+        Swal.fire({
+        title: 'ยืนยันการบันทึก?',
+        text: 'ตรวจสอบข้อมูลผู้ใช้งานก่อนทำการบันทึก',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#FF9760',
+        confirmButtonText: 'บันทึกข้อมูล',
+        cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+        if (result.isConfirmed) {
+        form.submit();
+        }
+        });
+        });
+        });
+    </script>
+}

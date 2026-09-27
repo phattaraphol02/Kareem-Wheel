@@ -1,0 +1,46 @@
+@*
+    ป๊อปอัปแจ้งผลการทำงาน ใช้ร่วมกันทุก Layout
+    รองรับคีย์ TempData ทั้ง 2 แบบที่ใช้ปนกันอยู่ในโปรเจกต์
+    (SuccessMessage/ErrorMessage และ Success/Error)
+*@
+@{
+    var successText = TempData["SuccessMessage"] ?? TempData["Success"];
+    var errorText = TempData["ErrorMessage"] ?? TempData["Error"];
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    (function () {
+        var successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(successText?.ToString() ?? ""));
+        var errorMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(errorText?.ToString() ?? ""));
+
+        function show() {
+            if (successMessage && successMessage.trim() !== '') {
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: successMessage,
+                    icon: 'success',
+                    confirmButtonColor: '#FF9760',
+                    confirmButtonText: 'ตกลง'
+                });
+            }
+
+            if (errorMessage && errorMessage.trim() !== '') {
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonColor: '#FF9760',
+                    confirmButtonText: 'ตกลง'
+                });
+            }
+        }
+
+        // ไม่ผูกกับ jQuery แล้ว เพราะบาง Layout โหลด jQuery ไม่ทัน
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', show);
+        } else {
+            show();
+        }
+    })();
+</script>

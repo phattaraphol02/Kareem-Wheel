@@ -1,0 +1,617 @@
+@model IEnumerable<CS66_WebApplication1.Models.Appointment>
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+    ViewData["Title"] = "งานของฉัน";
+
+    var mechanics = ViewBag.Mechanics as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string myId = (Context.Session.GetInt32("Customer_Id") ?? 0).ToString();
+
+    var tasks = Model?.ToList() ?? new List<CS66_WebApplication1.Models.Appointment>();
+
+    int todayCount = ViewBag.TodayTasksCount ?? 0;
+    int doingCount = ViewBag.InProgressCount ?? 0;
+    int doneToday = ViewBag.CompletedTodayCount ?? 0;
+    int monthCount = ViewBag.MonthlyTasksCount ?? 0;
+    int weekDone = ViewBag.WeeklyCompleted ?? 0;
+
+    // ── จัดกลุ่มงาน ──
+    string[] closedStatuses = { "เสร็จสิ้น", "ยกเลิกแล้ว", "รอชำระเงิน", "รอยืนยันชำระเงิน" };
+
+    var openTasks = tasks.Where(t => !closedStatuses.Contains(t.Status ?? "")).ToList();
+    var unclaimed = openTasks.Where(t => string.IsNullOrEmpty(t.Employee_Id)).ToList();
+    var mine = openTasks.Where(t => t.Employee_Id == myId).ToList();
+    var finished = tasks.Where(t => closedStatuses.Contains(t.Status ?? "")).ToList();
+
+    // งานถัดไปที่ต้องลงมือ = งานของฉันที่ใกล้ถึงเวลาที่สุด
+    var nextJob = mine.OrderBy(t => t.Appointment_Date).FirstOrDefault();
+
+    // ── ทักทายตามช่วงเวลา ──
+    int hour = DateTime.Now.Hour;
+    string greeting = hour < 12 ? "สวัสดีตอนเช้า" : hour < 17 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น";
+    string greetIcon = hour < 12 ? "bi-sunrise" : hour < 17 ? "bi-sun" : "bi-moon-stars";
+
+    var thaiDays = new[] { "อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์" };
+    string todayLabel = $"วัน{thaiDays[(int)DateTime.Today.DayOfWeek]}ที่ {DateTime.Today:dd MMMM yyyy}";
+
+    // เป้าหมายรายสัปดาห์ (ใช้โชว์ความคืบหน้าแบบง่ายๆ)
+    int weekGoal = 10;
+    int weekPct = weekGoal > 0 ? Math.Min(100, weekDone * 100 / weekGoal) : 0;
+
+    // ── helper แปลงสถานะเป็นสี/ไอคอน ──
+    Func<string?, (string cls, string icon, string text)> statusOf = s => (s ?? "") switch
+    {
+        "กำลังทำ" or "กำลังดำเนินการซ่อม" => ("st-doing", "bi-tools", "กำลังซ่อม"),
+        "ยืนยันแล้ว" => ("st-ready", "bi-check2-circle", "พร้อมทำ"),
+        "รออนุมัติ" => ("st-wait", "bi-hourglass-split", "รออนุมัติ"),
+        "รอชำระเงิน" => ("st-pay", "bi-wallet2", "รอลูกค้าชำระ"),
+        "รอยืนยันชำระเงิน" => ("st-pay", "bi-hourglass-split", "รอแอดมินยืนยัน"),
+        "เสร็จสิ้น" => ("st-done", "bi-check-all", "เสร็จสิ้น"),
+        "ยกเลิกแล้ว" => ("st-cancel", "bi-x-circle", "ยกเลิกแล้ว"),
+        _ => ("st-wait", "bi-record-circle", string.IsNullOrEmpty(s) ? "รอดำเนินการ" : s)
+    };
+}
+
+@section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --o: #FF9760;
+            --o-deep: #F97A38;
+            --o-light: #FFF2EB;
+            --bg: #FAFAFA;
+            --card: #FFFFFF;
+            --line: #ECECEC;
+            --ink: #262322;
+            --muted: #8E8781;
+        }
+
+        body { background: var(--bg); font-family: 'Kanit', sans-serif; color: var(--ink); }
+
+        /* ══ 1. แถบทักทาย ══ */
+        .hello-bar {
+            background: linear-gradient(115deg, #FFFFFF 0%, var(--o-light) 130%);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 26px 32px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .hello-avatar {
+            width: 58px; height: 58px; border-radius: 18px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--o) 0%, var(--o-deep) 100%);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; box-shadow: 0 8px 20px rgba(249,122,56,0.28);
+        }
+
+        .hello-name { font-size: 1.45rem; font-weight: 700; line-height: 1.25; }
+        .hello-date { font-size: 0.85rem; color: var(--muted); }
+
+        .today-chip {
+            background: #fff; border: 1px solid var(--line); border-radius: 16px;
+            padding: 12px 22px; text-align: center; min-width: 108px;
+        }
+
+        .today-chip .n {
+            font-family: 'Montserrat', sans-serif; font-weight: 800;
+            font-size: 1.6rem; line-height: 1; color: var(--o-deep);
+        }
+
+        .today-chip .l { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
+
+        /* ══ 2. การ์ดสถิติ ══ */
+        .stat {
+            background: var(--card); border: 1px solid var(--line);
+            border-radius: 18px; padding: 20px; height: 100%;
+            display: flex; align-items: center; gap: 16px; transition: 0.2s;
+        }
+
+            .stat:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.05); }
+
+        .stat-ico {
+            width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+        }
+
+        .ico-today { background: #FFF2EB; color: #F97A38; }
+        .ico-doing { background: #E7F0FF; color: #1D68D6; }
+        .ico-done  { background: #E8F6EC; color: #2E9E4F; }
+        .ico-month { background: #F3EDFB; color: #7A4FBF; }
+
+        .stat-n {
+            font-family: 'Montserrat', sans-serif; font-weight: 800;
+            font-size: 1.65rem; line-height: 1;
+        }
+
+        .stat-l { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+        /* ══ 3. งานถัดไป ══ */
+        .next-card {
+            background: linear-gradient(125deg, #2B2724 0%, #3D3733 100%);
+            border-radius: 22px; padding: 28px 32px; color: #fff;
+            margin-bottom: 22px; position: relative; overflow: hidden;
+        }
+
+            .next-card::after {
+                content: ""; position: absolute; right: -60px; top: -60px;
+                width: 240px; height: 240px; border-radius: 50%;
+                background: radial-gradient(circle, rgba(255,151,96,0.22) 0%, rgba(255,151,96,0) 70%);
+            }
+
+        .next-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,151,96,0.2); color: #FFB98A;
+            padding: 5px 14px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 600; margin-bottom: 12px;
+        }
+
+        .next-service { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+        .next-meta { color: #B8B0AA; font-size: 0.9rem; }
+        .next-body { position: relative; z-index: 1; }
+
+        .next-time {
+            font-family: 'Montserrat', sans-serif; font-weight: 800;
+            font-size: 2.4rem; line-height: 1; color: var(--o);
+        }
+
+        /* ══ 4. การ์ดงาน ══ */
+        .panel {
+            background: var(--card); border: 1px solid var(--line);
+            border-radius: 20px; overflow: hidden; margin-bottom: 22px;
+        }
+
+        .panel-top {
+            padding: 18px 24px; border-bottom: 1px solid var(--line);
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        }
+
+        .panel-title { font-weight: 600; display: flex; align-items: center; gap: 9px; }
+
+        .count-pill {
+            background: var(--o-light); color: var(--o-deep);
+            padding: 3px 12px; border-radius: 20px;
+            font-size: 0.78rem; font-weight: 700;
+        }
+
+        .job {
+            display: flex; align-items: center; gap: 18px;
+            padding: 18px 24px; border-bottom: 1px solid #F6F6F6; transition: 0.18s;
+        }
+
+            .job:last-child { border-bottom: none; }
+            .job:hover { background: #FCFBFA; }
+
+        .job-time {
+            width: 72px; flex-shrink: 0; text-align: center;
+            border-right: 2px solid var(--o-light); padding-right: 14px;
+        }
+
+            .job-time .hm {
+                font-family: 'Montserrat', sans-serif; font-weight: 800;
+                font-size: 1.1rem; color: var(--ink);
+            }
+
+            .job-time .dm { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+        .job-main { flex-grow: 1; min-width: 0; }
+
+        .job-service {
+            font-weight: 600; font-size: 1rem; margin-bottom: 3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .job-cust { font-size: 0.84rem; color: var(--muted); }
+
+        .job-side { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+
+        /* ── สถานะ ── */
+        .st {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 13px; border-radius: 20px;
+            font-size: 0.76rem; font-weight: 600; white-space: nowrap;
+        }
+
+        .st-wait   { background: #FFF8E6; color: #B37F00; }
+        .st-ready  { background: #FFF2EB; color: #E06A1F; }
+        .st-doing  { background: #E7F0FF; color: #1D68D6; }
+        .st-pay    { background: #FFF3E0; color: #E65100; }
+        .st-done   { background: #E8F6EC; color: #2E9E4F; }
+        .st-cancel { background: #FDECEC; color: #C33; }
+
+        /* ── ปุ่มกดเร็ว ── */
+        .qbtn {
+            border: none; border-radius: 11px; padding: 9px 18px;
+            font-size: 0.84rem; font-weight: 600; font-family: 'Kanit', sans-serif;
+            cursor: pointer; transition: 0.18s; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .q-start { background: #1D68D6; color: #fff; }
+        .q-start:hover { background: #1655AF; }
+
+        .q-done { background: #2E9E4F; color: #fff; }
+        .q-done:hover { background: #24803E; }
+
+        .q-claim { background: var(--o); color: #fff; }
+        .q-claim:hover { background: var(--o-deep); }
+
+        .q-ghost {
+            background: transparent; color: var(--muted); border: 1px solid var(--line);
+        }
+        .q-ghost:hover { background: #F4F4F4; color: var(--ink); }
+
+        .q-light { background: rgba(255,255,255,0.14); color: #fff; }
+        .q-light:hover { background: rgba(255,255,255,0.24); color: #fff; }
+
+        /* ── งานที่ยังไม่มีคนรับ ── */
+        .job-open { background: #FFFCF8; }
+        .job-open .job-time { border-right-color: #FFD9BE; }
+
+        .badge-free {
+            background: #FFE9D6; color: #C25A12;
+            font-size: 0.68rem; font-weight: 700;
+            padding: 3px 9px; border-radius: 10px; margin-left: 7px;
+        }
+
+        /* ── ความคืบหน้า ── */
+        .prog-track { background: #F0EEEC; border-radius: 20px; height: 10px; overflow: hidden; }
+        .prog-fill {
+            height: 100%; border-radius: 20px;
+            background: linear-gradient(90deg, var(--o) 0%, var(--o-deep) 100%);
+            transition: width 0.5s;
+        }
+
+        /* ── ว่างเปล่า ── */
+        .empty { text-align: center; padding: 52px 24px; }
+
+        .empty-ico {
+            width: 78px; height: 78px; border-radius: 50%; background: var(--o-light);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px; font-size: 2rem; color: var(--o);
+        }
+
+        /* ── มือถือ ── */
+        @@media (max-width: 768px) {
+            .hello-bar { padding: 20px; }
+            .next-card { padding: 22px; }
+            .next-time { font-size: 1.9rem; }
+            .job { flex-wrap: wrap; gap: 12px; padding: 16px; }
+            .job-time { width: auto; border-right: none; padding-right: 0; display: flex; align-items: baseline; gap: 8px; }
+            .job-main { width: 100%; order: 3; }
+            .job-side { width: 100%; order: 4; flex-direction: row; justify-content: space-between; align-items: center; }
+        }
+    </style>
+}
+
+<!-- ══════════ 1. ทักทาย ══════════ -->
+<div class="hello-bar">
+    <div class="d-flex align-items-center gap-3">
+        <div class="hello-avatar"><i class="bi @greetIcon"></i></div>
+        <div>
+            <div class="hello-name">@greeting, @ViewBag.EmployeeName</div>
+            <div class="hello-date"><i class="bi bi-calendar3 me-1"></i>@todayLabel</div>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="today-chip">
+            <div class="n">@mine.Count</div>
+            <div class="l">งานค้างของฉัน</div>
+        </div>
+        <div class="today-chip">
+            <div class="n">@unclaimed.Count</div>
+            <div class="l">รอคนรับ</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ 2. สถิติ ══════════ -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat">
+            <div class="stat-ico ico-today"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <div class="stat-n">@todayCount</div>
+                <div class="stat-l">คิววันนี้</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat">
+            <div class="stat-ico ico-doing"><i class="bi bi-tools"></i></div>
+            <div>
+                <div class="stat-n">@doingCount</div>
+                <div class="stat-l">กำลังซ่อม</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat">
+            <div class="stat-ico ico-done"><i class="bi bi-check2-all"></i></div>
+            <div>
+                <div class="stat-n">@doneToday</div>
+                <div class="stat-l">เสร็จวันนี้</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat">
+            <div class="stat-ico ico-month"><i class="bi bi-graph-up"></i></div>
+            <div>
+                <div class="stat-n">@monthCount</div>
+                <div class="stat-l">งานเดือนนี้</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ 3. งานถัดไป ══════════ -->
+@if (nextJob != null)
+{
+    var ns = statusOf(nextJob.Status);
+    <div class="next-card">
+        <div class="next-body row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="next-tag"><i class="bi bi-lightning-charge-fill"></i> งานถัดไปของคุณ</span>
+                <div class="next-service">@(nextJob.Service?.Service_Name ?? "บริการทั่วไป")</div>
+                <div class="next-meta">
+                    <i class="bi bi-person-fill me-1"></i>@(nextJob.Customer?.Customer_Name ?? $"ลูกค้ารหัส {nextJob.Customer_Id}")
+                    @if (nextJob.Customer?.Phone != null)
+                    {
+                        <span class="ms-3"><i class="bi bi-telephone-fill me-1"></i>@nextJob.Customer.Phone.Trim()</span>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(nextJob.Notes))
+                {
+                    <div class="next-meta mt-2"><i class="bi bi-chat-left-text me-1"></i>@nextJob.Notes</div>
+                }
+            </div>
+
+            <div class="col-lg-5 text-lg-end">
+                <div class="next-time">@nextJob.Appointment_Date.ToString("HH:mm")</div>
+                <div class="next-meta mb-3">@nextJob.Appointment_Date.ToString("dd MMM yyyy")</div>
+
+                <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                    @if (nextJob.Status == "กำลังทำ" || nextJob.Status == "กำลังดำเนินการซ่อม")
+                    {
+                        <form asp-action="UpdateTaskStatus" method="post">
+                            <input type="hidden" name="appointmentId" value="@nextJob.Id" />
+                            <input type="hidden" name="newStatus" value="เสร็จแล้ว" />
+                            <button type="submit" class="qbtn q-done"><i class="bi bi-check-lg"></i> ทำเสร็จแล้ว</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="UpdateTaskStatus" method="post">
+                            <input type="hidden" name="appointmentId" value="@nextJob.Id" />
+                            <input type="hidden" name="newStatus" value="กำลังทำ" />
+                            <button type="submit" class="qbtn q-start"><i class="bi bi-play-fill"></i> เริ่มทำงาน</button>
+                        </form>
+                    }
+                    <span class="st @ns.cls align-self-center"><i class="bi @ns.icon"></i> @ns.text</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+
+        <!-- ══════════ 4. งานที่ยังไม่มีคนรับ ══════════ -->
+        @if (unclaimed.Any())
+        {
+            <div class="panel">
+                <div class="panel-top">
+                    <div class="panel-title">
+                        <i class="bi bi-hand-index-thumb" style="color: var(--o);"></i> งานที่ยังไม่มีคนรับ
+                    </div>
+                    <span class="count-pill">@unclaimed.Count งาน</span>
+                </div>
+
+                @foreach (var t in unclaimed)
+                {
+                    <div class="job job-open">
+                        <div class="job-time">
+                            <div class="hm">@t.Appointment_Date.ToString("HH:mm")</div>
+                            <div class="dm">@t.Appointment_Date.ToString("dd MMM")</div>
+                        </div>
+                        <div class="job-main">
+                            <div class="job-service">
+                                @(t.Service?.Service_Name ?? "บริการทั่วไป")
+                                <span class="badge-free">ว่าง</span>
+                            </div>
+                            <div class="job-cust">
+                                <i class="bi bi-person me-1"></i>@(t.Customer?.Customer_Name ?? $"ลูกค้ารหัส {t.Customer_Id}")
+                            </div>
+                        </div>
+                        <div class="job-side">
+                            <form asp-action="UpdateTaskStatus" method="post">
+                                <input type="hidden" name="appointmentId" value="@t.Id" />
+                                <input type="hidden" name="newStatus" value="กำลังทำ" />
+                                <button type="submit" class="qbtn q-claim"><i class="bi bi-hand-index"></i> รับงานนี้</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ══════════ 5. คิวงานของฉัน ══════════ -->
+        <div class="panel">
+            <div class="panel-top">
+                <div class="panel-title">
+                    <i class="bi bi-list-check" style="color: var(--o);"></i> คิวงานของฉัน
+                </div>
+                <span class="count-pill">@mine.Count งาน</span>
+            </div>
+
+            @if (mine.Any())
+            {
+                @foreach (var t in mine)
+                {
+                    var s = statusOf(t.Status);
+                    bool isDoing = t.Status == "กำลังทำ" || t.Status == "กำลังดำเนินการซ่อม";
+
+                    <div class="job">
+                        <div class="job-time">
+                            <div class="hm">@t.Appointment_Date.ToString("HH:mm")</div>
+                            <div class="dm">@t.Appointment_Date.ToString("dd MMM")</div>
+                        </div>
+
+                        <div class="job-main">
+                            <div class="job-service">@(t.Service?.Service_Name ?? "บริการทั่วไป")</div>
+                            <div class="job-cust">
+                                <i class="bi bi-person me-1"></i>@(t.Customer?.Customer_Name ?? $"ลูกค้ารหัส {t.Customer_Id}")
+                                @if (t.IsCustomerConfirmed)
+                                {
+                                    <span class="ms-2" style="color:#2E9E4F;"><i class="bi bi-patch-check-fill"></i> ลูกค้ายืนยันแล้ว</span>
+                                }
+                                else if (t.IsReminderSent)
+                                {
+                                    <span class="ms-2" style="color:#B37F00;"><i class="bi bi-bell"></i> รอลูกค้าตอบ</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="job-side">
+                            <span class="st @s.cls"><i class="bi @s.icon"></i> @s.text</span>
+                            <div class="d-flex gap-2">
+                                @if (isDoing)
+                                {
+                                    <form asp-action="UpdateTaskStatus" method="post">
+                                        <input type="hidden" name="appointmentId" value="@t.Id" />
+                                        <input type="hidden" name="newStatus" value="เสร็จแล้ว" />
+                                        <button type="submit" class="qbtn q-done"><i class="bi bi-check-lg"></i> เสร็จแล้ว</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="UpdateTaskStatus" method="post">
+                                        <input type="hidden" name="appointmentId" value="@t.Id" />
+                                        <input type="hidden" name="newStatus" value="กำลังทำ" />
+                                        <button type="submit" class="qbtn q-start"><i class="bi bi-play-fill"></i> เริ่มทำ</button>
+                                    </form>
+                                }
+
+                                @if (!t.IsReminderSent)
+                                {
+                                    <form asp-action="SendReminder" method="post"
+                                          onsubmit="return confirm('ส่งอีเมลแจ้งเตือนให้ลูกค้ายืนยันคิวใช่หรือไม่?');">
+                                        <input type="hidden" name="id" value="@t.Id" />
+                                        <button type="submit" class="qbtn q-ghost" title="สะกิดลูกค้า">
+                                            <i class="bi bi-bell"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty">
+                    <div class="empty-ico"><i class="bi bi-cup-hot"></i></div>
+                    <h5 class="fw-bold mb-1">ไม่มีงานค้างแล้ว</h5>
+                    <p class="text-muted small mb-0">เคลียร์งานหมดแล้ว พักได้เลย 🎉</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ══════════ 6. คอลัมน์ขวา ══════════ -->
+    <div class="col-lg-4">
+
+        <!-- ความคืบหน้าสัปดาห์นี้ -->
+        <div class="panel">
+            <div class="panel-top">
+                <div class="panel-title"><i class="bi bi-trophy" style="color: var(--o);"></i> ผลงาน 7 วันล่าสุด</div>
+            </div>
+            <div style="padding: 24px;">
+                <div class="d-flex align-items-baseline justify-content-between mb-2">
+                    <div>
+                        <span style="font-family:'Montserrat',sans-serif; font-weight:800; font-size:2.2rem; color:var(--o-deep);">@weekDone</span>
+                        <span class="text-muted ms-1">/ @weekGoal งาน</span>
+                    </div>
+                    <span class="count-pill">@weekPct%</span>
+                </div>
+                <div class="prog-track"><div class="prog-fill" style="width:@weekPct%;"></div></div>
+                <p class="text-muted small mb-0 mt-3">
+                    @if (weekPct >= 100)
+                    {
+                        <span><i class="bi bi-stars me-1"></i>ทำได้เกินเป้าแล้ว เยี่ยมมาก!</span>
+                    }
+                    else
+                    {
+                        <span><i class="bi bi-info-circle me-1"></i>อีก @(weekGoal - weekDone) งานถึงเป้าสัปดาห์นี้</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <!-- ทางลัด -->
+        <div class="panel">
+            <div class="panel-top">
+                <div class="panel-title"><i class="bi bi-grid" style="color: var(--o);"></i> ทางลัด</div>
+            </div>
+            <div style="padding: 16px;">
+                <a asp-action="Tasks" class="qbtn q-ghost w-100 justify-content-start mb-2" style="text-decoration:none;">
+                    <i class="bi bi-list-task"></i> ดูงานทั้งหมดของฉัน
+                </a>
+                <a asp-action="Schedule" class="qbtn q-ghost w-100 justify-content-start mb-2" style="text-decoration:none;">
+                    <i class="bi bi-calendar-week"></i> ตารางงานรวมของร้าน
+                </a>
+                <a asp-action="SpareParts" class="qbtn q-ghost w-100 justify-content-start" style="text-decoration:none;">
+                    <i class="bi bi-gear-wide-connected"></i> เบิกอะไหล่
+                </a>
+            </div>
+        </div>
+
+        <!-- งานที่ปิดแล้ววันนี้ -->
+        @if (finished.Any())
+        {
+            <div class="panel">
+                <div class="panel-top">
+                    <div class="panel-title"><i class="bi bi-archive" style="color: var(--o);"></i> งานที่ปิดแล้ว</div>
+                    <span class="count-pill">@finished.Count</span>
+                </div>
+                @foreach (var t in finished.Take(6))
+                {
+                    var s = statusOf(t.Status);
+                    <div style="padding: 14px 20px; border-bottom: 1px solid #F6F6F6;">
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <div style="min-width:0;">
+                                <div class="job-service" style="font-size:0.92rem;">@(t.Service?.Service_Name ?? "บริการทั่วไป")</div>
+                                <div class="job-cust" style="font-size:0.78rem;">@t.Appointment_Date.ToString("dd MMM, HH:mm")</div>
+                            </div>
+                            <span class="st @s.cls"><i class="bi @s.icon"></i> @s.text</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // กันกดปุ่มซ้ำระหว่างรอเซิร์ฟเวอร์ตอบ
+        document.querySelectorAll('form').forEach(function (f) {
+            f.addEventListener('submit', function () {
+                var b = f.querySelector('button[type="submit"]');
+                if (b) {
+                    b.disabled = true;
+                    b.style.opacity = '0.6';
+                }
+            });
+        });
+    </script>
+}

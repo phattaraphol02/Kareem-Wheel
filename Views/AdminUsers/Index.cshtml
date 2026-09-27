@@ -1,0 +1,427 @@
+﻿@model IEnumerable<CS66_WebApplication1.Models.Customer>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* ===== Rim Theme ===== */
+    :root {
+        --rim-orange: #FF9259;
+        --rim-orange-dark: #F37C3B;
+        --rim-orange-light: #FFF2EC;
+        --rim-bg-light: #F9FAFB;
+        --rim-text-main: #2D2D2D;
+        --rim-text-muted: #8A8A8A;
+        --rim-border: #EEEEEE;
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .page-header h2 {
+        color: var(--rim-text-main);
+        letter-spacing: -0.5px;
+    }
+
+    .page-header p {
+        color: var(--rim-text-muted);
+    }
+
+    /* ===== Stat Cards ===== */
+    .stat-card {
+        background: #fff;
+        padding: 22px 24px;
+        border-radius: 16px;
+        border: 1px solid var(--rim-border);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .stat-card:hover {
+            border-color: var(--rim-orange);
+            box-shadow: 0 8px 20px rgba(255, 146, 89, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .label {
+            font-size: 0.78rem;
+            color: var(--rim-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 4px;
+            color: var(--rim-text-main);
+        }
+
+        .stat-card .icon-box {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            background: var(--rim-orange-light);
+            color: var(--rim-orange);
+        }
+
+    /* ===== Filter / Search Bar ===== */
+    .filter-bar {
+        background: #fff;
+        border: 1px solid var(--rim-border);
+        border-radius: 16px;
+        padding: 14px 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .btn-filter {
+        border-radius: 25px;
+        font-weight: 500;
+        font-size: 0.88rem;
+        padding: 7px 18px;
+        border: 1px solid var(--rim-border);
+        background: #fff;
+        color: var(--rim-text-muted);
+        transition: 0.2s;
+    }
+
+        .btn-filter:hover {
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+        }
+
+        .btn-filter.active {
+            background: var(--rim-orange);
+            border-color: var(--rim-orange);
+            color: #fff;
+        }
+
+    .search-input {
+        border-radius: 25px;
+        border: 1px solid var(--rim-border);
+        font-size: 0.9rem;
+    }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 146, 89, 0.15);
+            border-color: var(--rim-orange);
+        }
+
+    /* ===== Buttons ===== */
+    .btn-rim {
+        border-radius: 25px;
+        font-weight: 500;
+        transition: 0.25s;
+    }
+
+    .btn-rim-orange {
+        background: var(--rim-orange);
+        color: #fff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(255, 146, 89, 0.3);
+    }
+
+        .btn-rim-orange:hover {
+            background: var(--rim-orange-dark);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(255, 146, 89, 0.4);
+            transform: translateY(-1px);
+        }
+
+    .btn-back {
+        border-radius: 25px;
+        border: 1px solid var(--rim-border);
+        color: var(--rim-text-muted);
+        background: #fff;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+
+        .btn-back:hover {
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+            background: var(--rim-orange-light);
+        }
+
+    /* ===== Table ===== */
+    .table-container {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid var(--rim-border);
+        padding: 10px 25px 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .table thead th {
+        color: var(--rim-text-muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        border-bottom: 2px solid var(--rim-bg-light);
+        padding-top: 16px;
+        padding-bottom: 12px;
+    }
+
+    .table tbody tr {
+        transition: background 0.15s;
+    }
+
+        .table tbody tr:hover {
+            background: var(--rim-orange-light);
+        }
+
+    .table tbody td {
+        padding-top: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--rim-bg-light);
+    }
+
+    .avatar-circle {
+        width: 38px;
+        height: 38px;
+        background: var(--rim-orange-light);
+        color: var(--rim-orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        margin-right: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    /* ===== Badges ===== */
+    .badge-pill {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-admin {
+        background: var(--rim-orange-light);
+        color: var(--rim-orange-dark);
+    }
+
+    .badge-staff {
+        background: #E3F2FD;
+        color: #2196F3;
+    }
+
+    .badge-customer {
+        background: #F2F2F2;
+        color: #8A8A8A;
+    }
+
+    /* ===== Action Buttons ===== */
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: 1px solid var(--rim-border);
+        transition: 0.2s;
+        background: #fff;
+        color: var(--rim-text-muted);
+    }
+
+        .btn-action:hover {
+            background: var(--rim-orange-light);
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+        }
+
+    /* ===== Alert ===== */
+    .alert-rim-success {
+        border-radius: 14px;
+        background: #E8F5E9;
+        color: #2E7D32;
+        border: none;
+    }
+
+    /* ===== Empty state ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--rim-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            color: var(--rim-orange);
+            opacity: 0.5;
+            margin-bottom: 12px;
+            display: block;
+        }
+</style>
+
+<div class="container-fluid py-4 px-lg-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 page-header flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-0">จัดการผู้ใช้งาน</h2>
+            <p class="small mb-0">ระบบจัดการรายชื่อและสิทธิ์การเข้าถึง</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          
+            <a asp-action="Create" class="btn btn-rim btn-rim-orange px-4 py-2">
+                <i class="bi bi-person-plus-fill me-2"></i> เพิ่มผู้ใช้งาน
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="icon-box"><i class="bi bi-people-fill"></i></div>
+                <div class="label">ทั้งหมด</div>
+                <div class="value">@ViewBag.TotalCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="icon-box"><i class="bi bi-shield-fill-check"></i></div>
+                <div class="label">ADMIN</div>
+                <div class="value">@ViewBag.AdminCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="icon-box"><i class="bi bi-person-badge-fill"></i></div>
+                <div class="label">STAFF</div>
+                <div class="value">@ViewBag.StaffCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="icon-box"><i class="bi bi-person-fill"></i></div>
+                <div class="label">CUSTOMER</div>
+                <div class="value">@ViewBag.CustomerCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-bar d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Index" class="btn btn-filter @(string.IsNullOrEmpty(Context.Request.Query["role"]) ? "active" : "")">ทั้งหมด</a>
+            <a asp-action="Index" asp-route-role="9" class="btn btn-filter @(Context.Request.Query["role"] == "9" ? "active" : "")">Admin</a>
+            <a asp-action="Index" asp-route-role="2" class="btn btn-filter @(Context.Request.Query["role"] == "2" ? "active" : "")">Staff</a>
+            <a asp-action="Index" asp-route-role="1" class="btn btn-filter @(Context.Request.Query["role"] == "1" ? "active" : "")">Customer</a>
+        </div>
+        <form asp-action="Index" method="get" class="d-flex">
+            <input type="text" name="searchString" value="@Context.Request.Query["searchString"]" class="form-control search-input" placeholder="ค้นหาอีเมล..." style="width: 220px;">
+            <input type="hidden" name="role" value="@Context.Request.Query["role"]" />
+            <button type="submit" class="btn btn-rim-orange btn-rim ms-2 px-3"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-rim-success shadow-sm mb-4 py-3">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    <div class="table-container">
+        @if (Model.Any())
+        {
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">ข้อมูลผู้ใช้งาน</th>
+                        <th>อีเมล</th>
+                        <th>บทบาท</th>
+                        <th>สถานะ</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle">
+                                        @(user.Customer_Name?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                    <span class="fw-bold">@user.Customer_Name</span>
+                                </div>
+                            </td>
+                            <td class="text-muted">@user.Customer_Email</td>
+                            <td>
+                                @if (user.Role == 9)
+                                {
+                                    <span class="badge-pill badge-admin">ADMIN</span>
+                                }
+                                else if (user.Role == 2)
+                                {
+                                    <span class="badge-pill badge-staff">STAFF</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-pill badge-customer">CUSTOMER</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge rounded-pill bg-success text-white px-3" style="font-size: 0.75rem;">ใช้งานปกติ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill bg-danger text-white px-3" style="font-size: 0.75rem;">ถูกปิดใช้งาน</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-2">
+                                    <a asp-action="Details" asp-route-id="@user.Customer_Id" class="btn-action" title="ดู"><i class="bi bi-eye"></i></a>
+                                    <a asp-action="Edit" asp-route-id="@user.Customer_Id" class="btn-action" title="แก้ไข"><i class="bi bi-pencil"></i></a>
+
+                                    <form asp-action="ToggleStatus" asp-route-id="@user.Customer_Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('@(user.IsActive ? "ต้องการปิดการใช้งานบัญชีนี้ใช่หรือไม่?" : "ต้องการเปิดการใช้งานบัญชีนี้ใช่หรือไม่?")');">
+                                        @if (user.IsActive)
+                                        {
+                                            <button type="submit" class="btn-action" style="color: #2E7D32;" title="ปิดการใช้งาน">
+                                                <i class="bi bi-toggle-on fs-5"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn-action" style="color: #E57373;" title="เปิดการใช้งาน">
+                                                <i class="bi bi-toggle-off fs-5"></i>
+                                            </button>
+                                        }
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <div class="fw-bold">ไม่พบข้อมูลผู้ใช้งาน</div>
+                <div class="small">ลองเปลี่ยนคำค้นหาหรือตัวกรองดูใหม่อีกครั้ง</div>
+            </div>
+        }
+    </div>
+</div>

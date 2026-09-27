@@ -1,0 +1,44 @@
+﻿@model CS66_WebApplication1.Models.Payment
+
+<div class="container py-4">
+
+    <h2>Payment Detail</h2>
+
+    <div class="card p-4">
+
+        <p><b>Payment ID:</b> @Model.Payment_Id</p>
+
+        <p><b>Order ID:</b> #@Model.Order_Id</p>
+
+        <p><b>Amount:</b> @Model.Amount.ToString("N2")</p>
+
+        <p><b>Paid At:</b> @Model.PaidAt</p>
+
+        <p><b>Status:</b> @Model.Status</p>
+
+        @if (!string.IsNullOrEmpty(Model.SlipFileName))
+        {
+            <p><b>Slip:</b></p>
+
+            <img src="/slips/@Model.SlipFileName"
+                 class="img-fluid"
+                 style="max-width:400px;" />
+        }
+
+        <hr />
+
+        <form asp-action="Approve" method="post" style="display:inline">
+            <input type="hidden" name="id" value="@Model.Payment_Id" />
+            <button class="btn btn-success">Approve</button>
+        </form>
+
+        <form asp-action="Reject" method="post" style="display:inline">
+            <input type="hidden" name="id" value="@Model.Payment_Id" />
+            <button class="btn btn-danger">Reject</button>
+        </form>
+
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+
+    </div>
+
+</div>

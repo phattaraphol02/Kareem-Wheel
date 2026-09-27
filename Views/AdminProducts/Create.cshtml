@@ -1,0 +1,217 @@
+﻿@model ProductDto
+@{
+    ViewData["Title"] = "Register New Arrival";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB;
+        --rim-orange-hover: #f38349;
+        --rim-bg-light: #F9FAFB;
+        --rim-card: #FFFFFF;
+        --rim-text-main: #2D2D2D;
+        --rim-text-muted: #7A7A7A;
+        --rim-border: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--rim-text-main);
+    }
+
+    .page-header-rim {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        padding: 35px 40px;
+        border-left: 6px solid var(--rim-orange);
+        border-radius: 12px;
+        margin-bottom: 35px;
+        border: 1px solid var(--rim-border);
+    }
+
+    .form-section-card {
+        border: 1px solid var(--rim-border);
+        background: var(--rim-card);
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.01);
+    }
+
+    .custom-input {
+        border: 1px solid var(--rim-border);
+        border-radius: 8px;
+        padding: 11px 15px;
+        font-size: 0.95rem;
+        transition: 0.2s;
+    }
+
+        .custom-input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 151, 96, 0.15);
+            border-color: var(--rim-orange);
+        }
+
+    .label-accent {
+        color: var(--rim-text-main);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .modern-upload {
+        border: 2px dashed #CDCDCD;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        border-radius: 10px;
+        background: #FAFAFA;
+        color: var(--rim-text-muted);
+    }
+
+        .modern-upload:hover {
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+            background: var(--rim-orange-light);
+        }
+
+    .guideline-box {
+        background: var(--rim-orange-light);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 151, 96, 0.2);
+    }
+
+    .btn-rim-submit {
+        background: var(--rim-orange);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        border: 1px solid var(--rim-orange);
+    }
+
+        .btn-rim-submit:hover {
+            background: var(--rim-orange-hover);
+            color: white;
+        }
+
+    .btn-rim-discard {
+        color: var(--rim-text-muted);
+        font-weight: 500;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+    }
+
+        .btn-rim-discard:hover {
+            color: #E74C3C;
+            background: #FDF2F2;
+        }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="page-header-rim shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <p class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 2px;">Product Registration</p>
+                <h2 class="fw-bold mb-0">เพิ่มสินค้า<span style="color: var(--rim-orange)">ใหม่เข้าคลัง</span></h2>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <a class="btn btn-outline-secondary rounded-pill px-4" asp-action="Index"><i class="bi bi-arrow-left-short"></i> กลับสู่คลังสินค้า</a>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="row g-4 justify-content-center">
+            <div class="col-xl-8 col-lg-7">
+                <div class="form-section-card p-4 p-md-5">
+                    <h5 class="fw-bold mb-4 pb-2 border-bottom text-uppercase" style="font-size: 1.05rem;">
+                        <i class="bi bi-file-earmark-text me-2" style="color: var(--rim-orange)"></i>Asset Specification
+                    </h5>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="label-accent" asp-for="Brand_Id">แบรนด์สินค้า (Brand)</label>
+                            <select class="form-select custom-input" asp-for="Brand_Id" asp-items="ViewBag.BrandList">
+                                <option value="">-- เลือกแบรนด์สินค้า --</option>
+                            </select>
+                            <span asp-validation-for="Brand_Id" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-accent" asp-for="Category_Id">ประเภทสินค้า (Category)</label>
+                            <select class="form-select custom-input" asp-for="Category_Id" asp-items="ViewBag.CategoryList">
+                                <option value="">-- เลือกประเภทสินค้า --</option>
+                            </select>
+                            <span asp-validation-for="Category_Id" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                        <div class="col-12">
+                            <label class="label-accent" asp-for="Product_Name">ชื่อรุ่นสินค้า</label>
+                            <input class="form-control custom-input" asp-for="Product_Name" placeholder="ระบุชื่อรุ่นสินค้า..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-accent" asp-for="CostPrice">ราคาทุน (THB)</label>
+                            <input class="form-control custom-input" asp-for="CostPrice" type="number" step="0.01" placeholder="0.00" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-accent" asp-for="Price">ราคาขาย (THB)</label>
+                            <input class="form-control custom-input" asp-for="Price" type="number" step="0.01" placeholder="0.00" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-accent" asp-for="Condition">สภาพสินค้า (Condition)</label>
+                            <select class="form-select custom-input" asp-for="Condition">
+                                <option value="มือ 1">มือ 1 (ของใหม่)</option>
+                                <option value="มือ 2">มือ 2 (มือสอง)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="label-accent" asp-for="Description">คำอธิบายรายละเอียด</label>
+                            <textarea class="form-control custom-input" asp-for="Description" rows="5"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mt-4">
+                    <button type="submit" class="btn btn-rim-submit"><i class="bi bi-cloud-arrow-up me-1"></i> ยืนยันการลงทะเบียน</button>
+                    <a asp-action="Index" class="btn-rim-discard">ยกเลิกและละทิ้ง</a>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                <div class="sticky-top" style="top: 2rem;">
+                    <div class="form-section-card p-4">
+                        <label class="label-accent mb-3">รูปภาพสินค้า</label>
+                        <div class="modern-upload mb-4" onclick="document.getElementById('imageInput').click()">
+                            <div id="placeholderText"><i class="bi bi-images fs-1 d-block text-muted"></i> <span>คลิกเพื่อเลือกไฟล์รูป</span></div>
+                            <img id="preview" class="img-fluid d-none rounded shadow-sm" style="max-height: 280px;" />
+                            <input class="d-none" id="imageInput" asp-for="ImageFile" type="file" accept="image/*" onchange="previewImage(this)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('preview');
+            const placeholder = document.getElementById('placeholderText');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { preview.src = e.target.result; preview.classList.remove('d-none'); placeholder.classList.add('d-none'); }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

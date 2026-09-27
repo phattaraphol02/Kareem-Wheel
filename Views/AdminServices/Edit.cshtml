@@ -1,0 +1,244 @@
+﻿@model CS66_WebApplication1.Models.Service
+
+@{
+    ViewData["Title"] = "แก้ไขบริการ - Kareem Wheel";
+    Layout = "_AdminLayout"; // หรือ Layout ที่คุณใช้งานอยู่
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<style>
+    :root {
+        --peach-primary: #FF9259;
+        --peach-hover: #FF7B39;
+        --peach-light: #FFF2EC;
+        --bg-white: #FFFFFF;
+        --bg-light: #F9FAFB;
+        --text-dark: #2D2D2D;
+        --text-muted: #8C8A89;
+        --border-color: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* ── Header ── */
+    .page-header-lux {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--peach-light) 100%);
+        padding: 30px 40px;
+        border-left: 6px solid var(--peach-primary);
+        border-radius: 16px;
+        margin-bottom: 30px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .header-icon {
+        width: 55px;
+        height: 55px;
+        background: var(--peach-primary);
+        color: white;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 15px rgba(255, 146, 89, 0.3);
+    }
+
+    /* ── Card & Form ── */
+    .lux-card {
+        background: var(--bg-white);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        padding: 40px;
+    }
+
+    .lux-label {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .lux-label i {
+            color: var(--peach-primary);
+            font-size: 1.1rem;
+        }
+
+    .lux-input {
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: #FAFAFA;
+        color: var(--text-dark);
+    }
+
+        .lux-input:focus {
+            outline: none;
+            background-color: #FFFFFF;
+            border-color: var(--peach-primary);
+            box-shadow: 0 0 0 4px rgba(255, 146, 89, 0.15);
+        }
+
+        .lux-input::placeholder {
+            color: #C0C0C0;
+            font-weight: 300;
+        }
+
+    /* ── Buttons ── */
+    .btn-lux-primary {
+        background: var(--peach-primary);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 6px 15px rgba(255, 146, 89, 0.25);
+    }
+
+        .btn-lux-primary:hover {
+            background: var(--peach-hover);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 146, 89, 0.35);
+        }
+
+    .btn-lux-outline {
+        background: #FFFFFF;
+        color: var(--text-muted);
+        border: 1.5px solid var(--border-color);
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+        .btn-lux-outline:hover {
+            border-color: #DC3545;
+            color: #DC3545;
+            background: #FFF0F0;
+        }
+</style>
+
+<div class="container py-5 animate__animated animate__fadeInUp" style="animation-duration: 0.6s;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <!-- Header -->
+            <div class="page-header-lux shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="header-icon me-4"><i class="bi bi-pencil-square"></i></div>
+                    <div>
+                        <p class="text-muted small mb-0 text-uppercase fw-semibold" style="letter-spacing: 1.5px;">Service Management</p>
+                        <h2 class="fw-bold mb-0" style="font-family: 'Montserrat', sans-serif;">แก้ไข<span style="color: var(--peach-primary)">ข้อมูลบริการ</span></h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="lux-card">
+                <form asp-action="Edit" method="post" id="editServiceForm">
+                    <input type="hidden" asp-for="Service_Id" />
+
+                    <div class="row g-4">
+                        <!-- ชื่อบริการ -->
+                        <div class="col-md-12">
+                            <label class="lux-label"><i class="bi bi-tag-fill"></i> ชื่อบริการ (Service Name)</label>
+                            <input asp-for="Service_Name" class="form-control lux-input" placeholder="เช่น บริการสลับยางถ่วงล้อ" required />
+                            <span asp-validation-for="Service_Name" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <!-- ราคา -->
+                        <div class="col-md-12">
+                            <label class="lux-label"><i class="bi bi-cash-coin"></i> ราคา / บาท (Price)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);">฿</span>
+                                <input asp-for="Price" type="number" step="0.01" min="0" class="form-control lux-input border-start-0" style="border-radius: 0 12px 12px 0;" placeholder="0.00" required />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <!-- รายละเอียด -->
+                        <div class="col-md-12">
+                            <label class="lux-label"><i class="bi bi-card-text"></i> รายละเอียด (Description)</label>
+                            <textarea asp-for="Description" class="form-control lux-input" rows="4" placeholder="ระบุรายละเอียดหรือเงื่อนไขของบริการนี้..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" style="border-color: var(--border-color);">
+
+                    <!-- ปุ่มดำเนินการ -->
+                    <div class="d-flex justify-content-end gap-3 mt-4">
+                        <a asp-action="Index" class="btn-lux-outline">
+                            <i class="bi bi-x-circle"></i> ยกเลิก
+                        </a>
+                        <button type="button" class="btn-lux-primary" onclick="confirmSave()">
+                            <i class="bi bi-floppy-fill"></i> บันทึกการเปลี่ยนแปลง
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function confirmSave() {
+            var form = document.getElementById('editServiceForm');
+            if(form.checkValidity()) {
+                Swal.fire({
+                    title: 'ยืนยันการบันทึก?',
+                    text: "คุณต้องการบันทึกการแก้ไขข้อมูลบริการนี้ใช่หรือไม่",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#FF9259',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'ใช่, บันทึกเลย!',
+                    cancelButtonText: 'ยกเลิก',
+                    customClass: {
+                        confirmButton: 'rounded-pill px-4',
+                        cancelButton: 'rounded-pill px-4'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                form.reportValidity();
+            }
+        }
+    </script>
+}

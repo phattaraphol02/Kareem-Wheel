@@ -1,0 +1,253 @@
+﻿@model IEnumerable<CS66_WebApplication1.Models.Appointment>
+
+@{
+    ViewData["Title"] = "ตารางงานทั้งหมด";
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+
+    // 💡 จำลองรายชื่อช่าง (Map ชื่อช่างจากรหัส EMP)
+    var mechanics = new Dictionary<string, string>
+    {
+        { "EMP001", "ช่างสมชาย (เครื่องยนต์)" },
+        { "EMP002", "ช่างสมศักดิ์ (ช่วงล่าง)" },
+        { "EMP003", "ช่างวินัย (ล้อและยาง)" },
+        { "EMP004", "ช่างก้อง (ทั่วไป)" },
+        { "EMP005", "ช่างเอก (ทั่วไป)" },
+        { "EMP006", "ช่างชัย (ทั่วไป)" },
+        { "EMP007", "ช่างต้น (ทั่วไป)" }
+    };
+}
+
+@section Styles {
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F5F7FA 100%);
+            padding: 25px 30px;
+            border-radius: 16px;
+            border-left: 6px solid #4CAF50;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .table-card {
+            background: #FFFFFF;
+            border: 1px solid var(--rim-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: #FAFAFA;
+            padding: 16px 20px;
+            border-bottom: 2px solid var(--rim-border);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        .table tbody td {
+            padding: 16px 20px;
+            vertical-align: middle;
+            border-bottom: 1px solid #F8F9FA;
+            font-size: 0.95rem;
+        }
+
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-todo {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .status-doing {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .status-done {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .status-payment {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .status-cancel {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .employee-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #F8F9FA;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #EAEAEA;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #424242;
+        }
+
+            .employee-badge.unassigned {
+                background: #FFF8E1;
+                border-color: #FFECB3;
+                color: #F57F17;
+            }
+    </style>
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="fw-bold mb-1" style="color: #2D2D2D;">ตารางงานทั้งหมด <i class="bi bi-clipboard-check text-success"></i></h3>
+        <p class="mb-0 text-muted">ดูรายการคิวงาน สถานะ และผู้รับผิดชอบ</p>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>วัน-เวลาที่นัด</th>
+                    <th>บริการ / ลูกค้า</th>
+                    <th>ผู้รับผิดชอบ</th>
+                    <th>สถานะปัจจุบัน</th>
+                    <th class="text-center">จัดการสถานะ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        // กำหนดสีของ Badge สถานะ
+                        string badgeClass = "status-todo";
+                        if (item.Status == "กำลังทำ" || item.Status == "กำลังดำเนินการซ่อม") badgeClass = "status-doing";
+                        else if (item.Status == "รอชำระเงิน") badgeClass = "status-payment";
+                        else if (item.Status == "รอยืนยันชำระเงิน") badgeClass = "status-payment";
+                        else if (item.Status == "เสร็จแล้ว" || item.Status == "เสร็จสิ้น") badgeClass = "status-done";
+                        else if (item.Status == "ยกเลิกแล้ว") badgeClass = "status-cancel";
+
+                        // หาชื่อช่าง
+                        string empName = "ยังไม่ระบุช่าง";
+                        bool isUnassigned = string.IsNullOrEmpty(item.Employee_Id);
+                        if (!isUnassigned && mechanics.ContainsKey(item.Employee_Id))
+                        {
+                            empName = mechanics[item.Employee_Id];
+                        }
+
+                        <tr>
+                            <!-- วันที่และเวลา -->
+                            <td>
+                                <div class="fw-bold text-dark">@item.Appointment_Date.ToString("dd MMM yyyy")</div>
+                                <div class="small text-muted"><i class="bi bi-clock"></i> @item.Appointment_Date.ToString("HH:mm") น.</div>
+                            </td>
+
+                            <!-- บริการและลูกค้า -->
+                            <td>
+                                <div class="fw-bold" style="color: #2D2D2D;">@(item.Service?.Service_Name ?? "บริการทั่วไป")</div>
+                                <div class="small text-muted">
+                                    <i class="bi bi-person-fill"></i> @(item.Customer?.Customer_Name ?? $"รหัสลูกค้า: {item.Customer_Id}")
+                                </div>
+                            </td>
+
+                            <!-- ผู้รับผิดชอบ -->
+                            <td>
+                                @if (isUnassigned)
+                                {
+                                    <span class="employee-badge unassigned"><i class="bi bi-person-dash"></i> รอจ่ายงาน</span>
+                                }
+                                else
+                                {
+                                    <span class="employee-badge"><i class="bi bi-wrench"></i> @empName</span>
+                                }
+                            </td>
+
+                            <!-- สถานะ และการแจ้งเตือน -->
+                            <td>
+                                <span class="badge-status @badgeClass">@item.Status</span>
+                                <div class="mt-1">
+                                    @if (item.IsCustomerConfirmed)
+                                    {
+                                        <span class="badge bg-success" style="font-size: 0.7rem;"><i class="bi bi-check-circle"></i> ลูกค้าคอนเฟิร์มแล้ว</span>
+                                    }
+                                    else if (item.IsReminderSent)
+                                    {
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.7rem;"><i class="bi bi-bell"></i> รอคอนเฟิร์มคิว</span>
+                                    }
+                                </div>
+                            </td>
+
+                            <!-- จัดการอัปเดตสถานะ -->
+                            <td class="text-center">
+                                @if (item.Status != "ยกเลิกแล้ว" && item.Status != "รอชำระเงิน" && item.Status != "รอยืนยันชำระเงิน" && item.Status != "เสร็จสิ้น")
+                                {
+                                    <form asp-action="UpdateTaskStatus" asp-controller="EmployeeDashboard" method="post" class="d-flex justify-content-center align-items-center gap-2">
+                                        <input type="hidden" name="appointmentId" value="@item.Id" />
+
+                                        <select name="newStatus" class="form-select form-select-sm" style="width: 150px; font-size: 0.85rem; border-radius: 8px;">
+                                            <option value="รออนุมัติ" selected="@(item.Status == "รออนุมัติ")">รออนุมัติ</option>
+                                            <option value="ยืนยันแล้ว" selected="@(item.Status == "ยืนยันแล้ว")">ยืนยันแล้ว</option>
+                                            <option value="กำลังทำ" selected="@(item.Status == "กำลังทำ")">กำลังทำ</option>
+                                            <option value="เสร็จแล้ว" selected="@(item.Status == "เสร็จแล้ว")">งานเสร็จแล้ว</option>
+                                        </select>
+
+                                        <button type="submit" class="btn btn-sm btn-success rounded-3" title="บันทึกสถานะ">
+                                            <i class="bi bi-save"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else if (item.Status == "รอชำระเงิน")
+                                {
+                                    <span class="text-muted small"><i class="bi bi-wallet2 me-1"></i> รอลูกค้าชำระเงิน</span>
+                                }
+                                else if (item.Status == "รอยืนยันชำระเงิน")
+                                {
+                                    <span class="text-muted small"><i class="bi bi-hourglass-split me-1"></i> รอแอดมินยืนยัน</span>
+                                }
+                                else if (item.Status == "เสร็จสิ้น")
+                                {
+                                    <span class="text-success small"><i class="bi bi-check-circle-fill me-1"></i> เสร็จสิ้น</span>
+
+                                    <!-- ปุ่มสะกิดลูกค้า -->
+                                    @if (!item.IsReminderSent)
+                                    {
+                                        <form asp-action="SendReminder" asp-controller="EmployeeDashboard" method="post" class="mt-2" onsubmit="return confirm('ส่งแจ้งเตือนไปให้ลูกค้าคนนี้เพื่อคอนเฟิร์มคิวใช่หรือไม่?');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; border-radius: 20px; width: 100%;">
+                                                <i class="bi bi-bell-fill"></i> ส่งเตือนลูกค้า
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <h6 class="mt-3 fw-bold text-muted">ยังไม่มีรายการคิวงานในระบบ</h6>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,343 @@
+﻿@using Microsoft.AspNetCore.Http
+@model CS66_WebApplication1.Models.Customer
+
+@{
+    ViewData["Title"] = "Customer Profile - Premium Rims";
+
+    // ตรวจสอบ Role ของผู้ใช้งานเพื่อนำไปแสดงผล UI
+    string userRole = "1";
+    string roleDisplayName = "ลูกค้าสมาชิก (Member)";
+    string roleColor = "#FF9760"; // สีส้มพีชสำหรับลูกค้า
+    string roleBgColor = "#FFF2EB";
+    string roleIcon = "bi-star-fill";
+
+    var roleStr = Context.Session.GetString("Role");
+    var roleInt = Context.Session.GetInt32("Role");
+
+    if (User.IsInRole("9") || roleStr == "9" || roleInt == 9)
+    {
+        userRole = "9";
+        roleDisplayName = "ผู้ดูแลระบบ (Administrator)";
+        roleColor = "#2D2D2D"; // สีดำเข้มสำหรับแอดมิน
+        roleBgColor = "#EAEAEA";
+        roleIcon = "bi-shield-lock-fill";
+    }
+    else if (User.IsInRole("2") || roleStr == "2" || roleInt == 2)
+    {
+        userRole = "2";
+        roleDisplayName = "พนักงาน (Employee)";
+        roleColor = "#4A90E2"; // สีน้ำเงินสำหรับพนักงาน
+        roleBgColor = "#EAF3FC";
+        roleIcon = "bi-person-vcard-fill";
+    }
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB;
+        --rim-text-main: #2D2D2D;
+        --rim-text-muted: #7A7A7A;
+        --rim-bg-light: #F9FAFB;
+        --rim-border: #EAEAEA;
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .profile-card {
+        background: #ffffff;
+        border-radius: 24px;
+        border: 1px solid var(--rim-border);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+        overflow: hidden;
+    }
+
+    /* ฝั่งซ้าย (Sidebar) */
+    .profile-sidebar {
+        background: linear-gradient(180deg, #FFFFFF 0%, var(--rim-bg-light) 100%);
+        padding: 50px 30px;
+        text-align: center;
+        border-right: 1px solid var(--rim-border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .avatar-icon {
+        width: 120px;
+        height: 120px;
+        background: var(--rim-orange-light);
+        border: 4px solid #ffffff;
+        box-shadow: 0 8px 20px rgba(255, 151, 96, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        color: var(--rim-orange);
+    }
+
+    .role-badge {
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        border: 1px solid;
+    }
+
+    .profile-meta {
+        width: 100%;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px dashed var(--rim-border);
+        text-align: left;
+    }
+
+    .meta-item {
+        font-size: 0.9rem;
+        color: var(--rim-text-muted);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ฝั่งขวา (Content) */
+    .content-area {
+        padding: 50px;
+        background: #ffffff;
+    }
+
+    .section-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--rim-text-main);
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .section-title i {
+            color: var(--rim-orange);
+            font-size: 1.4rem;
+        }
+
+    .info-box {
+        background: var(--rim-bg-light);
+        border: 1px solid var(--rim-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: 0.3s;
+    }
+
+        .info-box:hover {
+            border-color: var(--rim-orange);
+            box-shadow: 0 4px 15px rgba(255, 151, 96, 0.05);
+        }
+
+    .info-label {
+        font-size: 0.8rem;
+        color: var(--rim-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 1.05rem;
+        color: var(--rim-text-main);
+        font-weight: 500;
+    }
+
+    /* ปุ่มกด */
+    .btn-lux {
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-edit-profile {
+        background: var(--rim-orange);
+        color: white;
+        border: none;
+        box-shadow: 0 6px 15px rgba(255, 151, 96, 0.25);
+    }
+
+        .btn-edit-profile:hover {
+            background: #FF7B39;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-dashboard {
+        background: #ffffff;
+        color: var(--rim-text-main);
+        border: 1.5px solid var(--rim-border);
+    }
+
+        .btn-dashboard:hover {
+            border-color: var(--rim-orange);
+            color: var(--rim-orange);
+            background: var(--rim-orange-light);
+        }
+
+    @@media (max-width: 992px) {
+        .profile-sidebar {
+            border-right: none;
+            border-bottom: 1px solid var(--rim-border);
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+    }
+</style>
+
+<div class="container py-5 animate__animated animate__fadeInUp" style="animation-duration: 0.6s;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="profile-card">
+                <div class="row g-0">
+
+                    <!-- ── ฝั่งซ้าย (Sidebar) ── -->
+                    <div class="col-lg-4 profile-sidebar">
+                        <div class="avatar-wrapper">
+                            <div class="avatar-icon">
+                                <!-- แสดงตัวอักษรตัวแรกของชื่อ ถ้าไม่มีใช้ไอคอน -->
+                                @(string.IsNullOrEmpty(Model.Customer_Name) ? Html.Raw("<i class='bi bi-person-fill'></i>") : Model.Customer_Name.Substring(0, 1).ToUpper())
+                            </div>
+                        </div>
+
+                        <h3 class="fw-bold text-dark mb-1">@Model.Customer_Name</h3>
+
+                        <!-- แสดงสถานะ Role ที่เปลี่ยนสีตามเงื่อนไข -->
+                        <div class="role-badge" style="background-color: @roleBgColor; color: @roleColor; border-color: @roleColor;">
+                            <i class="bi @roleIcon"></i> @roleDisplayName
+                        </div>
+
+                        <div class="profile-meta">
+                            <div class="meta-item">
+                                <i class="bi bi-patch-check-fill" style="color: #43C97A; font-size: 1.1rem;"></i>
+                                <span class="fw-medium text-dark">บัญชีผ่านการยืนยันแล้ว</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-hash text-muted" style="font-size: 1.1rem;"></i>
+                                <span>รหัสสมาชิก: <strong>#@Model.Customer_Id.ToString("D4")</strong></span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-calendar-check text-muted" style="font-size: 1.1rem;"></i>
+                                <span>อัปเดตล่าสุด: วันนี้</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── ฝั่งขวา (Content) ── -->
+                    <div class="col-lg-8 content-area">
+
+                        <div class="section-title">
+                            <i class="bi bi-person-lines-fill"></i> ข้อมูลการติดต่อ (Contact Info)
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-label">อีเมล (Email)</div>
+                                    <div class="info-value">@Model.Customer_Email</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-label">เบอร์โทรศัพท์ (Phone)</div>
+                                    <div class="info-value">@(string.IsNullOrEmpty(Model.Phone) ? "ไม่ได้ระบุข้อมูล" : Model.Phone)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-title mt-2">
+                            <i class="bi bi-geo-alt-fill"></i> ข้อมูลที่อยู่จัดส่ง (Shipping Address)
+                        </div>
+
+                        <div class="info-box">
+                            <div class="info-label">ที่อยู่โดยละเอียด</div>
+                            <div class="info-value" style="line-height: 1.6;">
+                                @(string.IsNullOrEmpty(Model.Address) ? "ไม่ได้ระบุที่อยู่" : Model.Address)
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box py-3">
+                                    <div class="info-label">จังหวัด / อำเภอ / ตำบล</div>
+                                    <div class="info-value">
+                                        @(Model.Province?.Province_Name ?? "-") /
+                                        @(Model.Amphur?.Amphur_Name ?? "-") /
+                                        @(Model.District?.District_Name ?? "-")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box py-3">
+                                    <div class="info-label">รหัสไปรษณีย์</div>
+                                    <div class="info-value">@(string.IsNullOrEmpty(Model.PostalCode) ? "-" : Model.PostalCode)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── ปุ่มจัดการ ── -->
+                        <div class="d-flex flex-wrap justify-content-end gap-3 mt-4 pt-3 border-top">
+                            @if (userRole == "9")
+                            {
+                                <a asp-controller="AdminDashboard" asp-action="Index" class="btn-lux btn-dashboard">
+                                    <i class="bi bi-grid-1x2-fill"></i> ไปที่แดชบอร์ดแอดมิน
+                                </a>
+                            }
+                            else if (userRole == "2")
+                            {
+                                <a asp-controller="EmployeeDashboard" asp-action="Index" class="btn-lux btn-dashboard">
+                                    <i class="bi bi-briefcase-fill"></i> ไปที่แดชบอร์ดพนักงาน
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="CustomerDashboard" asp-action="Index" class="btn-lux btn-dashboard">
+                                    <i class="bi bi-house-door-fill"></i> หน้าหลักของฉัน
+                                </a>
+                            }
+
+                            <a asp-action="Edit" asp-route-id="@Model.Customer_Id" class="btn-lux btn-edit-profile">
+                                <i class="bi bi-pencil-square"></i> แก้ไขข้อมูลส่วนตัว
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

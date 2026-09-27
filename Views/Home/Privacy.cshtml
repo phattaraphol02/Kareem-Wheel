@@ -1,0 +1,320 @@
+﻿@{
+    ViewData["Title"] = "เกี่ยวกับเรา";
+}
+
+<style>
+    /* ใช้ตัวแปรสีเดียวกับ Layout เพื่อคุมโทน */
+    :root {
+        --primary: #FF9760;
+        --primary-light: #FFF2EB;
+        --dark: #1E1E1E;
+        --border: #EAEAEA;
+        --text-muted: #6c757d;
+    }
+
+    .about-header {
+        background: radial-gradient(circle at top right, #FFF2EB 0%, #FFFFFF 70%);
+        padding: 70px 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 50px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* วงกลมตกแต่งพื้นหลัง */
+        .about-header::after {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 151, 96, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+    .badge-soft-primary {
+        background-color: var(--primary-light);
+        color: var(--primary);
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 42px;
+        color: var(--dark);
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-subtitle {
+        font-family: 'Kanit', sans-serif;
+        font-size: 18px;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .story-section {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        padding: 50px;
+        margin-bottom: 60px;
+    }
+
+    .story-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 28px;
+        color: var(--dark);
+        margin-bottom: 24px;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+        .story-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 3px;
+        }
+
+    .story-text {
+        font-family: 'Kanit', sans-serif;
+        font-size: 16px;
+        color: var(--text-muted);
+        line-height: 1.8;
+    }
+
+    .hero-shop-img-wrap {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 6px solid #FFFFFF;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+
+        .hero-shop-img-wrap img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .hero-shop-img-wrap:hover img {
+            transform: scale(1.03);
+        }
+
+    .service-box {
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 35px 25px;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+        .service-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(255, 151, 96, 0.1);
+            border-color: rgba(255, 151, 96, 0.3);
+        }
+
+    .icon-wrapper {
+        width: 70px;
+        height: 70px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 20px;
+        transition: all 0.3s ease;
+    }
+
+    .service-box:hover .icon-wrapper {
+        background: var(--primary);
+        color: #FFFFFF;
+    }
+
+    .service-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 18px;
+        color: var(--dark);
+        margin-bottom: 10px;
+    }
+
+    .service-desc {
+        font-family: 'Kanit', sans-serif;
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .cta-banner {
+        background: linear-gradient(135deg, var(--primary) 0%, #E88655 100%);
+        border-radius: 20px;
+        padding: 50px 30px;
+        text-align: center;
+        color: #FFFFFF;
+        box-shadow: 0 15px 30px rgba(255, 151, 96, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .cta-banner::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+    .btn-white-solid {
+        background: #FFFFFF;
+        color: var(--primary);
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+        padding: 12px 28px;
+        border-radius: 50px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        border: none;
+    }
+
+        .btn-white-solid:hover {
+            background: var(--dark);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+</style>
+
+<!-- Header Section -->
+<div class="about-header text-center">
+    <div class="container">
+        <span class="badge-soft-primary">Our Story</span>
+        <h1 class="page-title">KAREEM WHEEL</h1>
+        <p class="page-subtitle">จุดเริ่มต้นเล็กๆ ของคนรักรถ สู่ศูนย์บริการล้อแม็กและยางที่คนอ่างทองไว้วางใจ</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Story Section -->
+    <div class="story-section">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="story-title">แต่งรถทั้งที ต้องดีและจบ</h2>
+                <div class="story-text">
+                    <p>
+                        "ล้อแม็กและยาง" ไม่ใช่แค่อะไหล่ที่ใส่เพื่อให้รถวิ่งได้ แต่มันคือหน้าตา ความสวยงาม และที่สำคัญที่สุดคือ <strong>ความปลอดภัย</strong> ของคนที่คุณรัก
+                    </p>
+                    <p>
+                        ที่ <strong>ล้อแม็กการีม</strong> เราเปิดร้านนี้ขึ้นมาด้วยความเข้าใจหัวอกคนแต่งรถ ไม่ว่าคุณจะมีงบจำกัด หรืออยากจัดทรงให้สุด เราพร้อมให้คำปรึกษาแบบตรงไปตรงมา ไม่มีการยัดเยียดของ ไม่หมกเม็ด สเปคไหนรอด สเปคไหนติดซุ้ม เราบอกกันตามตรง
+                    </p>
+                    <p class="mb-0">
+                        เราคัดเฉพาะล้อแบรนด์แท้ ยางคุณภาพดี และใช้เครื่องมือมาตรฐานในการตั้งศูนย์ถ่วงล้อ เพราะเราอยากให้รถทุกคันที่ขับออกจากร้านเราไป หล่อขึ้น มั่นใจขึ้น และปลอดภัยที่สุด
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-6 position-relative">
+                <!-- วงกลมส้มอ่อนด้านหลังรูปภาพ -->
+                <div style="position: absolute; right: 5%; top: 50%; transform: translateY(-50%); width: 80%; height: 90%; border-radius: 30px; background: var(--primary-light); z-index: 0;"></div>
+
+                <div class="hero-shop-img-wrap">
+                    <img src="/images/wheele.png" alt="บรรยากาศหน้าร้าน KAREEM WHEEL" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    <div class="text-center mb-5">
+        <h3 class="fw-bold" style="color: var(--dark); font-family: 'Kanit', sans-serif;">บริการของเรา</h3>
+        <p class="text-muted">ครบจบในที่เดียว เรื่องล้อและยางปล่อยให้เป็นหน้าที่เรา</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="service-box">
+                <div class="icon-wrapper"><i class="bi bi-disc"></i></div>
+                <h5 class="service-title">จำหน่ายล้อแม็กแท้</h5>
+                <p class="service-desc">อัพเดตลายใหม่ตลอด มีให้เลือกครบทุกสไตล์ ทั้งเก๋ง กระบะ ลุย หรือซิ่ง พร้อมรับประกันโครงสร้าง</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="service-box">
+                <div class="icon-wrapper"><i class="bi bi-vinyl"></i></div>
+                <h5 class="service-title">ยางรถยนต์แบรนด์ชั้นนำ</h5>
+                <p class="service-desc">ยางใหม่ปีผลิตล่าสุด มีทุกไซส์ ตอบโจทย์ทั้งสายนุ่มเงียบ ประหยัดน้ำมัน หรือสายสปอร์ตเกาะถนน</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="service-box">
+                <div class="icon-wrapper"><i class="bi bi-crosshair"></i></div>
+                <h5 class="service-title">ตั้งศูนย์ - ถ่วงล้อ 3D</h5>
+                <p class="service-desc">แก้ปัญหาพวงมาลัยเอียง รถกินซ้าย-ขวา ด้วยระบบคอมพิวเตอร์ที่แม่นยำ ได้มาตรฐาน</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="service-box">
+                <div class="icon-wrapper"><i class="bi bi-wrench-adjustable-circle"></i></div>
+                <h5 class="service-title">เช็คช่วงล่าง เบรก โช้ค</h5>
+                <p class="service-desc">ดูแลระบบเบรกและช่วงล่างให้สมบูรณ์ เพื่อการขับขี่ที่ปลอดภัย ไร้เสียงรบกวน</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-banner">
+        <h3 class="fw-bold mb-3" style="font-family: 'Kanit', sans-serif;">ยังไม่แน่ใจว่าจะใส่สเปคไหนดี?</h3>
+        <p class="mb-4 opacity-75" style="font-family: 'Kanit', sans-serif;">
+            แวะมานั่งดื่มน้ำเย็นๆ ที่ร้านก่อนได้ครับ เรามีล้อจริงให้ทาบกับตัวรถฟรี! <br class="d-none d-md-block">
+            ดูให้ชัวร์ว่าเข้ากับรถไหม ก่อนตัดสินใจ
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="https://maps.google.com" target="_blank" class="btn-white-solid">
+                <i class="bi bi-geo-alt-fill text-danger"></i> นำทางไปที่ร้าน
+            </a>
+            <a href="tel:0917072766" class="btn-white-solid" style="background: transparent; border: 2px solid #FFFFFF; color: #FFFFFF;">
+                <i class="bi bi-telephone"></i> โทรปรึกษาช่าง
+            </a>
+        </div>
+    </div>
+</div>

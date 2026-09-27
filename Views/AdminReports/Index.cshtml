@@ -1,0 +1,586 @@
+@model List<CS66_WebApplication1.Models.Order>
+@using CS66_WebApplication1.Models
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "รายงาน";
+
+    string period = ViewBag.Period as string ?? "day";
+    var bestSellers = ViewBag.BestSellers as List<BestSellerItem> ?? new List<BestSellerItem>();
+    var lowStock = ViewBag.LowStock as List<Product> ?? new List<Product>();
+    int threshold = ViewBag.LowStockThreshold ?? 5;
+    decimal totalRevenue = ViewBag.TotalRevenue ?? 0m;
+
+    int outOfStock = lowStock.Count(p => p.Quantity <= 0);
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;900&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB;
+        --rim-border: #EAEAEA;
+        --rim-muted: #7A7A7A;
+    }
+
+    body { background: #F9FAFB; font-family: 'Kanit', sans-serif; }
+
+    .page-header-rim {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        padding: 30px 35px; border-radius: 16px; margin-bottom: 25px;
+        border: 1px solid var(--rim-border); display: flex; align-items: center; gap: 15px;
+    }
+
+    .header-icon {
+        width: 50px; height: 50px; background: var(--rim-orange); color: white;
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; box-shadow: 0 4px 15px rgba(255,151,96,0.3);
+    }
+
+    .btn-rim-filter {
+        border: 1px solid var(--rim-border); background: #FFF; color: var(--rim-muted);
+        font-size: 0.85rem; font-weight: 500; padding: 8px 22px; border-radius: 30px;
+        transition: all 0.25s; text-decoration: none; display: inline-block;
+    }
+
+        .btn-rim-filter:hover, .btn-rim-filter.active {
+            background: var(--rim-orange); color: white; border-color: var(--rim-orange);
+            box-shadow: 0 4px 12px rgba(255,151,96,0.25);
+        }
+
+    .kpi-card {
+        background: #FFF; border: 1px solid var(--rim-border); border-radius: 16px;
+        padding: 24px; height: 100%; box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+    }
+
+    .kpi-label { font-size: 0.82rem; color: var(--rim-muted); font-weight: 500; }
+
+    .kpi-value {
+        font-family: 'Montserrat', sans-serif; font-weight: 800;
+        font-size: 1.75rem; line-height: 1.2; margin-top: 6px;
+    }
+
+    .panel-card {
+        background: #FFF; border: 1px solid var(--rim-border); border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 25px;
+    }
+
+    .panel-head {
+        padding: 16px 22px; border-bottom: 1px solid var(--rim-border);
+        font-weight: 600; display: flex; align-items: center; gap: 8px;
+    }
+
+    .table thead th {
+        background: #FAFAFA; padding: 14px 20px; border-bottom: 2px solid var(--rim-border);
+        font-size: 0.8rem; font-weight: 600; color: #555; text-transform: uppercase;
+    }
+
+    .table tbody td {
+        padding: 14px 20px; vertical-align: middle;
+        border-bottom: 1px solid #F5F5F5; font-size: 0.9rem;
+    }
+
+    .rank-num {
+        width: 30px; height: 30px; border-radius: 9px; display: inline-flex;
+        align-items: center; justify-content: center; font-weight: 700;
+        font-family: 'Montserrat', sans-serif; font-size: 0.85rem;
+        background: var(--rim-orange-light); color: var(--rim-orange);
+    }
+
+    .rank-1 { background: linear-gradient(135deg,#FFD700,#FFA000); color:#fff; }
+    .rank-2 { background: linear-gradient(135deg,#C0C0C0,#9E9E9E); color:#fff; }
+    .rank-3 { background: linear-gradient(135deg,#CD7F32,#A05A2C); color:#fff; }
+
+    .stock-pill {
+        display: inline-block; padding: 5px 14px; border-radius: 30px;
+        font-weight: 600; font-size: 0.8rem; font-family: 'Montserrat', sans-serif;
+    }
+
+    .stock-out { background: #FFEBEE; color: #C62828; }
+    .stock-low { background: #FFF3E0; color: #E65100; }
+
+    .status-chip {
+        background: #F1F3F5; color: #555; padding: 4px 12px;
+        border-radius: 20px; font-size: 0.78rem; font-weight: 500;
+    }
+
+    .empty-row { text-align: center; padding: 45px 20px; color: var(--rim-muted); }
+
+    .btn-detail {
+        background: var(--rim-orange-light); color: var(--rim-orange); border: none;
+        padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .btn-detail:hover { background: var(--rim-orange); color: #fff; }
+
+    .modal-backdrop.show { background: rgba(0,0,0,0.4); }
+    .sales-modal .modal-content {
+        border: none; border-radius: 20px; overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .sales-modal .modal-header {
+        background: linear-gradient(135deg, #FFFFFF 0%, var(--rim-orange-light) 100%);
+        border-bottom: 1px solid var(--rim-border); padding: 20px 28px;
+    }
+    .sales-modal .modal-body { padding: 28px; }
+    .detail-stat {
+        background: #F9FAFB; border-radius: 12px; padding: 16px; text-align: center;
+        border: 1px solid var(--rim-border);
+    }
+    .detail-stat .stat-val {
+        font-family: 'Montserrat', sans-serif; font-weight: 800;
+        font-size: 1.3rem; color: var(--rim-orange);
+    }
+    .detail-stat .stat-label { font-size: 0.78rem; color: var(--rim-muted); margin-top: 2px; }
+
+    /* ── Heatmap รายเดือน ── */
+    .heat-grid {
+        display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+    }
+    .heat-cell {
+        border-radius: 12px; padding: 12px 8px; text-align: center;
+        border: 1px solid var(--rim-border); background: #FAFAFA;
+        transition: transform 0.18s, box-shadow 0.18s; cursor: default;
+    }
+    .heat-cell:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
+    .heat-cell .hc-month {
+        font-size: 0.72rem; font-weight: 600; letter-spacing: 0.3px;
+        text-transform: uppercase; opacity: 0.85;
+    }
+    .heat-cell .hc-qty {
+        font-family: 'Montserrat', sans-serif; font-weight: 800;
+        font-size: 1.35rem; line-height: 1.3;
+    }
+    .heat-cell .hc-unit { font-size: 0.68rem; opacity: 0.75; }
+
+    .lv-hot  { background: linear-gradient(135deg,#FF7A3D,#FF9760); border-color:#FF7A3D; color:#fff; }
+    .lv-warm { background: #FFE3D2; border-color:#FFC9A8; color:#B14A12; }
+    .lv-cool { background: #FFF6F0; border-color:#FFE0CC; color:#C97A48; }
+    .lv-none { background: #FAFAFA; border-color:#EEE; color:#C4C4C4; }
+
+    /* ── กลุ่มระดับความนิยม ── */
+    .tier-box {
+        border-radius: 14px; padding: 16px 18px; height: 100%;
+        border: 1px solid var(--rim-border); background: #fff;
+    }
+    .tier-head {
+        display: flex; align-items: center; gap: 8px;
+        font-weight: 700; font-size: 0.92rem; margin-bottom: 10px;
+    }
+    .tier-dot { width: 12px; height: 12px; border-radius: 4px; flex: 0 0 auto; }
+    .tier-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tier-chip {
+        font-size: 0.78rem; font-weight: 600; padding: 4px 12px;
+        border-radius: 20px; background: #F4F5F7; color: #555;
+    }
+    .tier-empty { font-size: 0.8rem; color: var(--rim-muted); font-style: italic; }
+
+    /* ── แถบไตรมาส ── */
+    .q-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .q-name { font-size: 0.82rem; font-weight: 600; width: 74px; flex: 0 0 auto; color: #555; }
+    .q-track { flex: 1; height: 26px; background: #F4F5F7; border-radius: 8px; overflow: hidden; }
+    .q-fill {
+        height: 100%; border-radius: 8px; background: linear-gradient(90deg,#FFB98A,#FF7A3D);
+        transition: width 0.6s ease;
+    }
+    .q-val {
+        font-family: 'Montserrat', sans-serif; font-weight: 700;
+        font-size: 0.85rem; width: 58px; text-align: right; flex: 0 0 auto; color: var(--rim-orange);
+    }
+
+    .legend-row { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.78rem; color: var(--rim-muted); }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.06); }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+
+    <div class="page-header-rim">
+        <div class="header-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+        <div>
+            <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif;">รายงาน<span style="color:var(--rim-orange)">ภาพรวม</span></h2>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">ข้อมูลการสั่งซื้อ สินค้าขายดี และสินค้าใกล้หมด — @ViewBag.PeriodLabel</p>
+        </div>
+    </div>
+
+    <!-- ปุ่มเลือกช่วงเวลา -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn-rim-filter @(period == "day" ? "active" : "")" asp-action="Index" asp-route-period="day">รายวัน</a>
+        <a class="btn-rim-filter @(period == "month" ? "active" : "")" asp-action="Index" asp-route-period="month">รายเดือน</a>
+        <a class="btn-rim-filter @(period == "year" ? "active" : "")" asp-action="Index" asp-route-period="year">รายปี</a>
+    </div>
+
+    <!-- KPI -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="bi bi-cash-stack me-1"></i> รายรับ @ViewBag.PeriodLabel</div>
+                <div class="kpi-value" style="color:#2E7D32;">฿@totalRevenue.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="bi bi-receipt me-1"></i> จำนวนคำสั่งซื้อ</div>
+                <div class="kpi-value" style="color:var(--rim-orange);">@ViewBag.OrderCount</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="bi bi-exclamation-triangle me-1"></i> สินค้าหมด / ใกล้หมด</div>
+                <div class="kpi-value" style="color:#C62828;">@outOfStock <span style="font-size:1rem;color:var(--rim-muted);">/ @lowStock.Count รายการ</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- สินค้าขายดี -->
+        <div class="col-lg-6">
+            <div class="panel-card">
+                <div class="panel-head"><i class="bi bi-fire" style="color:var(--rim-orange);"></i> สินค้าขายดี 10 อันดับ</div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">อันดับ</th>
+                                <th>สินค้า</th>
+                                <th class="text-center">ขายได้</th>
+                                <th class="text-center">คงเหลือ</th>
+                                <th class="text-center" style="width:90px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (bestSellers.Any())
+                            {
+                                @for (int i = 0; i < bestSellers.Count; i++)
+                                {
+                                    var b = bestSellers[i];
+                                    int rank = i + 1;
+                                    string rankCls = rank == 1 ? "rank-1" : rank == 2 ? "rank-2" : rank == 3 ? "rank-3" : "";
+                                    <tr>
+                                        <td><span class="rank-num @rankCls">@rank</span></td>
+                                        <td class="fw-bold">@b.Product.Product_Name</td>
+                                        <td class="text-center fw-bold" style="color:var(--rim-orange);">@b.SoldQty</td>
+                                        <td class="text-center">@b.Product.Quantity</td>
+                                        <td class="text-center">
+                                            <button class="btn-detail" onclick="showSalesDetail(@b.Product.Product_Id)">
+                                                <i class="bi bi-graph-up me-1"></i>ดูข้อมูล
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="empty-row">
+                                        <i class="bi bi-graph-down fs-1 d-block mb-2" style="color:#EAEAEA;"></i>
+                                        ยังไม่มีข้อมูลการขาย
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- สินค้าหมด / ใกล้หมด -->
+        <div class="col-lg-6">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <i class="bi bi-box-seam" style="color:#C62828;"></i> สินค้าหมด / ใกล้หมด
+                    <span class="text-muted fw-normal ms-1" style="font-size:0.78rem;">(เหลือ @threshold ชิ้นหรือน้อยกว่า)</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>สินค้า</th>
+                                <th>แบรนด์</th>
+                                <th class="text-center">คงเหลือ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (lowStock.Any())
+                            {
+                                foreach (var p in lowStock)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@p.Product_Name</td>
+                                        <td class="text-muted">@(p.Brand?.Brand_Name ?? "-")</td>
+                                        <td class="text-center">
+                                            <span class="stock-pill @(p.Quantity <= 0 ? "stock-out" : "stock-low")">
+                                                @(p.Quantity <= 0 ? "หมด" : $"{p.Quantity} ชิ้น")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="empty-row">
+                                        <i class="bi bi-check-circle fs-1 d-block mb-2" style="color:#C8E6C9;"></i>
+                                        สต็อกสินค้าเพียงพอทุกรายการ
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal รายละเอียดยอดขาย -->
+    <div class="modal fade sales-modal" id="salesDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="fw-bold mb-0" id="modalProductName" style="font-family:'Montserrat',sans-serif;"></h5>
+                        <p class="text-muted mb-0" style="font-size:0.85rem;">ช่วงเวลาที่สินค้าได้รับความนิยม (12 เดือนล่าสุด)</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-3">
+                            <div class="detail-stat">
+                                <div class="stat-val" id="statTotalSold">-</div>
+                                <div class="stat-label">ขายได้ทั้งหมด (ชิ้น)</div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="detail-stat">
+                                <div class="stat-val" id="statTotalRevenue">-</div>
+                                <div class="stat-label">รายได้รวม</div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="detail-stat">
+                                <div id="statPeakMonth" class="stat-val" style="font-size:0.95rem;">-</div>
+                                <div class="stat-label">ช่วงที่นิยมสูงสุด</div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="detail-stat">
+                                <div class="stat-val" id="statActiveMonths">-</div>
+                                <div class="stat-label">เดือนที่มียอดขาย</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title" style="font-size:1rem; margin-bottom:12px;">
+                        <i class="bi bi-calendar3"></i> ความนิยมรายเดือน
+                    </div>
+                    <div class="heat-grid mb-2" id="heatGrid"></div>
+                    <div class="legend-row mb-4">
+                        <div class="legend-item"><span class="legend-sw" style="background:linear-gradient(135deg,#FF7A3D,#FF9760);"></span> นิยมมาก</div>
+                        <div class="legend-item"><span class="legend-sw" style="background:#FFE3D2;"></span> นิยมปานกลาง</div>
+                        <div class="legend-item"><span class="legend-sw" style="background:#FFF6F0;"></span> นิยมน้อย</div>
+                        <div class="legend-item"><span class="legend-sw" style="background:#FAFAFA;"></span> ไม่มียอดขาย</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="tier-box">
+                                <div class="tier-head"><span class="tier-dot" style="background:#FF7A3D;"></span> นิยมมาก</div>
+                                <div class="tier-list" id="tierHot"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="tier-box">
+                                <div class="tier-head"><span class="tier-dot" style="background:#FFC9A8;"></span> นิยมปานกลาง</div>
+                                <div class="tier-list" id="tierWarm"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="tier-box">
+                                <div class="tier-head"><span class="tier-dot" style="background:#FFE0CC;"></span> นิยมน้อย</div>
+                                <div class="tier-list" id="tierCool"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title" style="font-size:1rem; margin-bottom:12px;">
+                        <i class="bi bi-bar-chart-steps"></i> เปรียบเทียบรายไตรมาส
+                    </div>
+                    <div id="quarterBars"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- รายการสั่งซื้อ -->
+    <div class="panel-card">
+        <div class="panel-head">
+            <i class="bi bi-list-ul" style="color:var(--rim-orange);"></i> ข้อมูลการสั่งซื้อ @ViewBag.PeriodLabel
+            <span class="text-muted fw-normal ms-1" style="font-size:0.8rem;">(@Model.Count รายการ)</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>เลขออเดอร์</th>
+                        <th>วันที่</th>
+                        <th>ลูกค้า</th>
+                        <th>สถานะ</th>
+                        <th class="text-end">ยอดรวม</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold" style="font-family:'Montserrat',sans-serif;">
+                                    @(item.OrderNumber ?? $"ORD{item.Order_Id:D4}")
+                                </td>
+                                <td>@item.OrderDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@(item.Customer?.Customer_Name ?? "ลูกค้าทั่วไป")</td>
+                                <td><span class="status-chip">@item.Status</span></td>
+                                <td class="text-end fw-bold" style="color:var(--rim-orange);">฿@item.GrandTotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="empty-row">
+                                <i class="bi bi-inbox fs-1 d-block mb-2" style="color:#EAEAEA;"></i>
+                                ไม่มีคำสั่งซื้อในช่วงเวลานี้
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function showSalesDetail(productId) {
+        document.getElementById('modalProductName').textContent = 'กำลังโหลด...';
+        ['statTotalSold','statTotalRevenue','statPeakMonth','statActiveMonths'].forEach(function (id) {
+            document.getElementById(id).textContent = '-';
+        });
+        document.getElementById('heatGrid').innerHTML = '';
+        document.getElementById('quarterBars').innerHTML = '';
+        ['tierHot','tierWarm','tierCool'].forEach(function (id) {
+            document.getElementById(id).innerHTML = '';
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('salesDetailModal'));
+        modal.show();
+
+        fetch('@Url.Action("ProductSalesDetail")' + '?productId=' + productId)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('modalProductName').textContent = data.productName;
+                document.getElementById('statTotalSold').textContent = data.totalSold.toLocaleString();
+                document.getElementById('statTotalRevenue').textContent = '฿' + data.totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2});
+                document.getElementById('statPeakMonth').textContent = data.peakMonth;
+                document.getElementById('statActiveMonths').textContent = data.activeMonths + ' / 12';
+
+                renderHeatmap(data.months);
+                renderTiers(data.months);
+                renderQuarters(data.quarters);
+            });
+    }
+
+    function renderHeatmap(months) {
+        var grid = document.getElementById('heatGrid');
+        grid.innerHTML = '';
+
+        months.forEach(function (m) {
+            var cell = document.createElement('div');
+            cell.className = 'heat-cell lv-' + m.level;
+            cell.title = m.fullLabel + ' — ขายได้ ' + m.qty + ' ชิ้น (฿' +
+                         m.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 }) + ')';
+
+            var month = document.createElement('div');
+            month.className = 'hc-month';
+            month.textContent = m.label;
+
+            var qty = document.createElement('div');
+            qty.className = 'hc-qty';
+            qty.textContent = m.qty;
+
+            var unit = document.createElement('div');
+            unit.className = 'hc-unit';
+            unit.textContent = 'ชิ้น';
+
+            cell.appendChild(month);
+            cell.appendChild(qty);
+            cell.appendChild(unit);
+            grid.appendChild(cell);
+        });
+    }
+
+    function renderTiers(months) {
+        var buckets = { hot: [], warm: [], cool: [] };
+        months.forEach(function (m) {
+            if (buckets[m.level]) buckets[m.level].push(m);
+        });
+
+        var targets = { hot: 'tierHot', warm: 'tierWarm', cool: 'tierCool' };
+        Object.keys(targets).forEach(function (level) {
+            var box = document.getElementById(targets[level]);
+            box.innerHTML = '';
+
+            if (buckets[level].length === 0) {
+                var empty = document.createElement('span');
+                empty.className = 'tier-empty';
+                empty.textContent = 'ไม่มีเดือนในระดับนี้';
+                box.appendChild(empty);
+                return;
+            }
+
+            buckets[level].forEach(function (m) {
+                var chip = document.createElement('span');
+                chip.className = 'tier-chip';
+                chip.textContent = m.label + ' · ' + m.qty;
+                box.appendChild(chip);
+            });
+        });
+    }
+
+    function renderQuarters(quarters) {
+        var wrap = document.getElementById('quarterBars');
+        wrap.innerHTML = '';
+
+        quarters.forEach(function (q) {
+            var row = document.createElement('div');
+            row.className = 'q-row';
+
+            var name = document.createElement('div');
+            name.className = 'q-name';
+            name.textContent = q.name;
+
+            var track = document.createElement('div');
+            track.className = 'q-track';
+
+            var fill = document.createElement('div');
+            fill.className = 'q-fill';
+            fill.style.width = Math.round(q.ratio * 100) + '%';
+            track.appendChild(fill);
+
+            var val = document.createElement('div');
+            val.className = 'q-val';
+            val.textContent = q.qty + ' ชิ้น';
+
+            row.appendChild(name);
+            row.appendChild(track);
+            row.appendChild(val);
+            wrap.appendChild(row);
+        });
+    }
+</script>
+}

@@ -1,0 +1,260 @@
+﻿@model List<Product>
+@{
+    ViewData["Title"] = "คอลเลกชันของเรา";
+}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+    :root {
+        --rim-orange: #FF9760;
+        --rim-orange-light: #FFF2EB; /* สีส้มพาสเทลสว่าง */
+        --rim-orange-hover: #f38349;
+        --rim-bg-light: #F9FAFB; /* พื้นหลังเว็บสีขาวคลีน */
+        --rim-card: #FFFFFF; /* พื้นหลังการ์ดขาวล้วน */
+        --rim-text-main: #2D2D2D; /* สีตัวอักษรหลัก */
+        --rim-text-muted: #7A7A7A; /* สีตัวอักษรรอง */
+        --rim-border: #EAEAEA; /* สีเส้นขอบเทาอ่อน */
+    }
+
+    body {
+        background-color: var(--rim-bg-light);
+        font-family: 'Kanit', sans-serif;
+        color: var(--rim-text-main);
+    }
+
+    .section-title {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: var(--rim-text-main);
+    }
+
+    /* Product Card - สไตล์ขาวคลีน โค้งมนพรีเมียม */
+    .product-card {
+        border: 1px solid var(--rim-border);
+        border-radius: 12px;
+        background: var(--rim-card);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        overflow: hidden;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--rim-orange);
+            box-shadow: 0 12px 25px rgba(255, 151, 96, 0.12);
+        }
+
+    /* กล่องครอบรูปภาพเพื่อป้องกันรูปเบี้ยวและจัดกึ่งกลาง */
+    .img-wrapper {
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FAFAFA;
+        padding: 20px;
+        overflow: hidden;
+        position: relative; /* เพิ่ม position สำหรับใส่ป้ายสินค้าหมด */
+    }
+
+    .product-img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+    }
+
+    /* ลูกเล่นหมุนและขยายล้อแม็กเล็กน้อยตอน Hover */
+    .product-card:hover .product-img {
+        transform: scale(1.06) rotate(6deg);
+    }
+
+    /* Buttons - ปรับเป็นทรงมน โทนขาวส้ม */
+    .btn-rim-details {
+        border: 2px solid var(--rim-orange);
+        color: var(--rim-orange);
+        font-weight: 500;
+        background: transparent;
+        border-radius: 30px;
+        transition: 0.3s;
+    }
+
+        .btn-rim-details:hover {
+            background: var(--rim-orange-light);
+            color: var(--rim-orange);
+            border-color: var(--rim-orange);
+        }
+
+    .btn-rim-cart {
+        background: var(--rim-orange);
+        color: white;
+        font-weight: 500;
+        border-radius: 30px;
+        border: none;
+        transition: 0.3s;
+    }
+
+        .btn-rim-cart:hover {
+            background: var(--rim-orange-hover);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 151, 96, 0.3);
+        }
+
+    .btn-out-of-stock {
+        background: #e9ecef;
+        color: #6c757d;
+        font-weight: 500;
+        border-radius: 30px;
+        border: 1px solid #dee2e6;
+        cursor: not-allowed;
+    }
+
+    .price-tag {
+        color: var(--rim-orange);
+        font-weight: 600;
+        font-size: 1.3rem;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    /* สไตล์ทำให้รูปดูจางลงเมื่อสินค้าหมด */
+    .img-disabled {
+        opacity: 0.4;
+        filter: grayscale(100%);
+    }
+
+    /* Toast - ปรับสไตล์สว่างขอบส้ม ดูคลีนตา */
+    #lux-toast {
+        visibility: hidden;
+        background: #FFFFFF;
+        color: var(--rim-text-main);
+        padding: 16px 30px;
+        position: fixed;
+        z-index: 9999;
+        right: 30px;
+        bottom: 30px;
+        border-radius: 8px;
+        border: 1px solid var(--rim-border);
+        border-left: 5px solid var(--rim-orange);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        font-weight: 500;
+    }
+
+        #lux-toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+    @@keyframes fadein {
+        from {
+            bottom: 0;
+            opacity: 0;
+        }
+
+        to {
+            bottom: 30px;
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeout {
+        from {
+            bottom: 30px;
+            opacity: 1;
+        }
+
+        to {
+            bottom: 0;
+            opacity: 0;
+        }
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <p class="text-uppercase mb-1" style="color: var(--rim-orange); letter-spacing: 3px; font-size: 0.85rem; font-weight: 600;">สินค้าพรีเมียมคัดสรรพิเศษ</p>
+        <h1 class="section-title display-6 fw-bold">คอลเลกชันล้อแม็ก</h1>
+        <div class="mx-auto mt-3" style="width: 50px; height: 3px; background: var(--rim-orange); border-radius: 2px;"></div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            bool outOfStock = item.Quantity <= 0;
+            <div class="col-xl-3 col-lg-4 col-sm-6">
+                <div class="card product-card h-100">
+                    <div class="img-wrapper">
+                        @if (outOfStock)
+                        {
+                            <div style="position:absolute; top:12px; right:12px; z-index:2;">
+                                <span class="badge rounded-pill" style="background:#E53935; color:#fff; font-size:0.78rem; padding:6px 14px;">
+                                    <i class="bi bi-x-circle-fill me-1"></i>สินค้าหมด
+                                </span>
+                            </div>
+                        }
+                        <img src="/Products/@item.ImageFileName" class="product-img @(outOfStock ? "img-disabled" : "")" alt="@item.Product_Name">
+                    </div>
+                    <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-semibold mb-2" style="font-size: 1.1rem; line-height: 1.4;">@item.Product_Name</h5>
+                            <div class="price-tag mb-1">฿@item.Price.ToString("N0")</div>
+                            <div class="mb-3" style="font-size:0.82rem;">
+                                @if (outOfStock)
+                                {
+                                    <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle me-1"></i>สินค้าหมดชั่วคราว</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>มีสินค้า @item.Quantity ชิ้น</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.Product_Id"
+                               class="btn btn-rim-details py-2">ดูรายละเอียด</a>
+
+                            @if (!outOfStock)
+                            {
+                                <button onclick="addToCartAjax(@item.Product_Id, '@item.Product_Name')"
+                                        class="btn btn-rim-cart py-2">
+                                    <i class="bi bi-cart-plus me-1"></i> เพิ่มลงตะกร้า
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-out-of-stock py-2" disabled>
+                                    <i class="bi bi-x-circle me-1"></i> สินค้าหมด
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div id="lux-toast">เพิ่มสินค้าลงตะกร้าเรียบร้อยแล้ว</div>
+
+@section Scripts {
+    <script>
+        function addToCartAjax(id, name) {
+            $.post('/Cart/AddToCart', { id: id })
+                .done(function (res) {
+                    if (res && res.success === false) {
+                        showToast('<i class="bi bi-exclamation-circle text-danger me-2"></i> ' +
+                                  (res.message || 'เพิ่มสินค้าลงตะกร้าไม่สำเร็จ'));
+                        return;
+                    }
+                    showToast('<i class="bi bi-check2-circle text-success me-2"></i> เพิ่ม <strong>' + name + '</strong> ลงตะกร้าแล้ว');
+                })
+                .fail(function () {
+                    showToast('<i class="bi bi-exclamation-circle text-danger me-2"></i> เพิ่มสินค้าลงตะกร้าไม่สำเร็จ กรุณาลองใหม่');
+                });
+        }
+
+        function showToast(html) {
+            var x = document.getElementById("lux-toast");
+            x.innerHTML = html;
+            x.className = "show";
+            setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
+        }
+    </script>
+}
